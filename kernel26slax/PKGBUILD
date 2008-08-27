@@ -1,6 +1,5 @@
-# $Id$
-# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
-# Maintainer: Thomas Baechler <thomas@archlinux.org>
+# Maintainer: Jens Pranaitis <jens@jenux.homelinux.org>
+# Based on the work of godane <slaxemulator@gmail.com>
 pkgname=kernel26slax
 _basekernel=2.6.26
 pkgver=2.6.26.3
@@ -19,7 +18,8 @@ depends=('coreutils' 'module-init-tools' 'mkinitcpio>=0.5.18')
 replaces=('kernel24' 'kernel24-scsi' 'kernel26-scsi'
           'alsa-driver' 'ieee80211' 'hostap-driver26'
           'pwc' 'nforce' 'squashfs' 'ivtv'
-	  'zd1211' 'kvm-modules' 'iwlwifi' 'rt2x00-cvs')
+	  'zd1211' 'kvm-modules' 'iwlwifi' 'rt2x00-cvs' 'kernel26')
+provides=('kernel26')
 install=$pkgname.install
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://kernel.org/pub/linux/kernel/v2.6/patch-$pkgver.bz2
@@ -40,7 +40,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://patches.aircrack-ng.org/ath5k-frequency-chaos_2.6.26.2.patch
 	http://patches.aircrack-ng.org/ieee80211_inject-2.6.22.patch
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
-	)
+)
 md5sums=('5169d01c405bc3f866c59338e217968c'
          '556282beb8feabee2972e1971984f6dd'
          '017184a4809c8b300490777f12c54047'
@@ -52,7 +52,8 @@ md5sums=('5169d01c405bc3f866c59338e217968c'
          '573f7d9f66ac010e03841fa5413a9e6a'
          'adf116e0e44159b90e049079ee538a81'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
-         'a162a23b5db02738309e54b6ca9fcbc9')
+         'a162a23b5db02738309e54b6ca9fcbc9'
+	 )
 build() {
   KARCH=x86
 
