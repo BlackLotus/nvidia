@@ -1,0 +1,15 @@
+post_install() {
+  _depmod
+}
+
+post_upgrade() {
+  _depmod
+}
+
+post_remove() {
+  _depmod
+}
+
+_depmod() {
+  depmod -a 2.6.26-SLAX
+}

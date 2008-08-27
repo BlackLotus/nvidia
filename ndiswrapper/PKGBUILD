@@ -1,0 +1,28 @@
+#$Id: PKGBUILD 7906 2008-08-05 07:01:51Z tpowa $
+#Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+
+pkgname=ndiswrapper
+_kernver=2.6.26-SLAX
+_kernpath=$(pwd)/../kernel26slax/src/linux-2.6.26
+pkgver=1.53
+pkgrel=1
+pkgdesc="Module for NDIS (Windows Network Drivers) drivers supplied by vendors. For stock arch 2.6 kernel."
+license=('GPL')
+arch=(i686 x86_64)
+url="http://ndiswrapper.sourceforge.net"
+install="ndiswrapper.install"
+depends=("ndiswrapper-utils=$pkgver")
+source=(http://downloads.sourceforge.net/sourceforge/ndiswrapper/ndiswrapper-$pkgver.tar.gz)
+
+build()
+{
+  cd $startdir/src/ndiswrapper-$pkgver/driver
+  make KVERS=$_kernver KBUILD=$_kernpath
+  make DESTDIR=$startdir/pkg KVERS=$_kernver KBUILD=$_kernpath install || return 1
+  rm $startdir/pkg/lib/modules/$_kernver/modules.* #wtf?
+  # move it to correct kernel directory
+  mkdir -p $startdir/pkg/lib/modules/$_kernver/kernel/drivers/net/wireless/ndiswrapper
+  mv $startdir/pkg/lib/modules/$_kernver/misc/* $startdir/pkg/lib/modules/$_kernver/kernel/drivers/net/wireless/ndiswrapper/
+  rm -r $startdir/pkg/lib/modules/$_kernver/misc/
+}
+md5sums=('393c6e6ab0803963148e18538601cdec')

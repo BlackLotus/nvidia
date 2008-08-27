@@ -1,0 +1,2734 @@
+From: Dominic Duklas <dodo1122@googlemail.com>
+Date: Fri, 14 Mar 2008 20:07:43 +0000 (+0000)
+Subject: fix squashfs makefile
+X-Git-Tag: v2.6.25-zen1-preview1~22^2~1
+X-Git-Url: http://repo.or.cz/w/linux-2.6/zen-sources.git?a=commitdiff_plain;h=7d2f19b7af406a57030c344fb8151636f37885e7;hp=95d58ec8c5baaadea1ef229e110525c7efd1961c
+
+fix squashfs makefile
+---
+
+diff --git a/fs/Kconfig b/fs/Kconfig
+index b1d5341..7a3df57 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -1417,6 +1417,14 @@ config SQUASHFS_FRAGMENT_CACHE_SIZE
+ 	  Note there must be at least one cached fragment.  Anything
+ 	  much more than three will probably not make much difference.
+ 
++config SQUASHFS_LZMA
++	bool "Enable LZMA support in squashfs"
++	depends on SQUASHFS
++	default n
++	help
++	  LZMA can compress much better then gzip, which is used in squashfs now.
++	  Select this to enable support for LZMA in squashfs.
++
+ config VXFS_FS
+ 	tristate "FreeVxFS file system support (VERITAS VxFS(TM) compatible)"
+ 	depends on BLOCK
+diff --git a/fs/squashfs/LzmaDecode.c b/fs/squashfs/LzmaDecode.c
+new file mode 100644
+index 0000000..71c62c4
+--- /dev/null
++++ b/fs/squashfs/LzmaDecode.c
+@@ -0,0 +1,584 @@
++/*
++  LzmaDecode.c
++  LZMA Decoder (optimized for Speed version)
++  
++  LZMA SDK 4.40 Copyright (c) 1999-2006 Igor Pavlov (2006-05-01)
++  http://www.7-zip.org/
++
++  LZMA SDK is licensed under two licenses:
++  1) GNU Lesser General Public License (GNU LGPL)
++  2) Common Public License (CPL)
++  It means that you can select one of these two licenses and 
++  follow rules of that license.
++
++  SPECIAL EXCEPTION:
++  Igor Pavlov, as the author of this Code, expressly permits you to 
++  statically or dynamically link your Code (or bind by name) to the 
++  interfaces of this file without subjecting your linked Code to the 
++  terms of the CPL or GNU LGPL. Any modifications or additions 
++  to this file, however, are subject to the LGPL or CPL terms.
++*/
++
++#include "LzmaDecode.h"
++
++#define kNumTopBits 24
++#define kTopValue ((UInt32)1 << kNumTopBits)
++
++#define kNumBitModelTotalBits 11
++#define kBitModelTotal (1 << kNumBitModelTotalBits)
++#define kNumMoveBits 5
++
++#define RC_READ_BYTE (*Buffer++)
++
++#define RC_INIT2 Code = 0; Range = 0xFFFFFFFF; \
++  { int i; for(i = 0; i < 5; i++) { RC_TEST; Code = (Code << 8) | RC_READ_BYTE; }}
++
++#ifdef _LZMA_IN_CB
++
++#define RC_TEST { if (Buffer == BufferLim) \
++  { SizeT size; int result = InCallback->Read(InCallback, &Buffer, &size); if (result != LZMA_RESULT_OK) return result; \
++  BufferLim = Buffer + size; if (size == 0) return LZMA_RESULT_DATA_ERROR; }}
++
++#define RC_INIT Buffer = BufferLim = 0; RC_INIT2
++
++#else
++
++#define RC_TEST { if (Buffer == BufferLim) return LZMA_RESULT_DATA_ERROR; }
++
++#define RC_INIT(buffer, bufferSize) Buffer = buffer; BufferLim = buffer + bufferSize; RC_INIT2
++ 
++#endif
++
++#define RC_NORMALIZE if (Range < kTopValue) { RC_TEST; Range <<= 8; Code = (Code << 8) | RC_READ_BYTE; }
++
++#define IfBit0(p) RC_NORMALIZE; bound = (Range >> kNumBitModelTotalBits) * *(p); if (Code < bound)
++#define UpdateBit0(p) Range = bound; *(p) += (kBitModelTotal - *(p)) >> kNumMoveBits;
++#define UpdateBit1(p) Range -= bound; Code -= bound; *(p) -= (*(p)) >> kNumMoveBits;
++
++#define RC_GET_BIT2(p, mi, A0, A1) IfBit0(p) \
++  { UpdateBit0(p); mi <<= 1; A0; } else \
++  { UpdateBit1(p); mi = (mi + mi) + 1; A1; } 
++  
++#define RC_GET_BIT(p, mi) RC_GET_BIT2(p, mi, ; , ;)               
++
++#define RangeDecoderBitTreeDecode(probs, numLevels, res) \
++  { int i = numLevels; res = 1; \
++  do { CProb *p = probs + res; RC_GET_BIT(p, res) } while(--i != 0); \
++  res -= (1 << numLevels); }
++
++
++#define kNumPosBitsMax 4
++#define kNumPosStatesMax (1 << kNumPosBitsMax)
++
++#define kLenNumLowBits 3
++#define kLenNumLowSymbols (1 << kLenNumLowBits)
++#define kLenNumMidBits 3
++#define kLenNumMidSymbols (1 << kLenNumMidBits)
++#define kLenNumHighBits 8
++#define kLenNumHighSymbols (1 << kLenNumHighBits)
++
++#define LenChoice 0
++#define LenChoice2 (LenChoice + 1)
++#define LenLow (LenChoice2 + 1)
++#define LenMid (LenLow + (kNumPosStatesMax << kLenNumLowBits))
++#define LenHigh (LenMid + (kNumPosStatesMax << kLenNumMidBits))
++#define kNumLenProbs (LenHigh + kLenNumHighSymbols) 
++
++
++#define kNumStates 12
++#define kNumLitStates 7
++
++#define kStartPosModelIndex 4
++#define kEndPosModelIndex 14
++#define kNumFullDistances (1 << (kEndPosModelIndex >> 1))
++
++#define kNumPosSlotBits 6
++#define kNumLenToPosStates 4
++
++#define kNumAlignBits 4
++#define kAlignTableSize (1 << kNumAlignBits)
++
++#define kMatchMinLen 2
++
++#define IsMatch 0
++#define IsRep (IsMatch + (kNumStates << kNumPosBitsMax))
++#define IsRepG0 (IsRep + kNumStates)
++#define IsRepG1 (IsRepG0 + kNumStates)
++#define IsRepG2 (IsRepG1 + kNumStates)
++#define IsRep0Long (IsRepG2 + kNumStates)
++#define PosSlot (IsRep0Long + (kNumStates << kNumPosBitsMax))
++#define SpecPos (PosSlot + (kNumLenToPosStates << kNumPosSlotBits))
++#define Align (SpecPos + kNumFullDistances - kEndPosModelIndex)
++#define LenCoder (Align + kAlignTableSize)
++#define RepLenCoder (LenCoder + kNumLenProbs)
++#define Literal (RepLenCoder + kNumLenProbs)
++
++#if Literal != LZMA_BASE_SIZE
++StopCompilingDueBUG
++#endif
++
++int LzmaDecodeProperties(CLzmaProperties *propsRes, const unsigned char *propsData, int size)
++{
++  unsigned char prop0;
++  if (size < LZMA_PROPERTIES_SIZE)
++    return LZMA_RESULT_DATA_ERROR;
++  prop0 = propsData[0];
++  if (prop0 >= (9 * 5 * 5))
++    return LZMA_RESULT_DATA_ERROR;
++  {
++    for (propsRes->pb = 0; prop0 >= (9 * 5); propsRes->pb++, prop0 -= (9 * 5));
++    for (propsRes->lp = 0; prop0 >= 9; propsRes->lp++, prop0 -= 9);
++    propsRes->lc = prop0;
++    /*
++    unsigned char remainder = (unsigned char)(prop0 / 9);
++    propsRes->lc = prop0 % 9;
++    propsRes->pb = remainder / 5;
++    propsRes->lp = remainder % 5;
++    */
++  }
++
++  #ifdef _LZMA_OUT_READ
++  {
++    int i;
++    propsRes->DictionarySize = 0;
++    for (i = 0; i < 4; i++)
++      propsRes->DictionarySize += (UInt32)(propsData[1 + i]) << (i * 8);
++    if (propsRes->DictionarySize == 0)
++      propsRes->DictionarySize = 1;
++  }
++  #endif
++  return LZMA_RESULT_OK;
++}
++
++#define kLzmaStreamWasFinishedId (-1)
++
++int LzmaDecode(CLzmaDecoderState *vs,
++    #ifdef _LZMA_IN_CB
++    ILzmaInCallback *InCallback,
++    #else
++    const unsigned char *inStream, SizeT inSize, SizeT *inSizeProcessed,
++    #endif
++    unsigned char *outStream, SizeT outSize, SizeT *outSizeProcessed)
++{
++  CProb *p = vs->Probs;
++  SizeT nowPos = 0;
++  Byte previousByte = 0;
++  UInt32 posStateMask = (1 << (vs->Properties.pb)) - 1;
++  UInt32 literalPosMask = (1 << (vs->Properties.lp)) - 1;
++  int lc = vs->Properties.lc;
++
++  #ifdef _LZMA_OUT_READ
++  
++  UInt32 Range = vs->Range;
++  UInt32 Code = vs->Code;
++  #ifdef _LZMA_IN_CB
++  const Byte *Buffer = vs->Buffer;
++  const Byte *BufferLim = vs->BufferLim;
++  #else
++  const Byte *Buffer = inStream;
++  const Byte *BufferLim = inStream + inSize;
++  #endif
++  int state = vs->State;
++  UInt32 rep0 = vs->Reps[0], rep1 = vs->Reps[1], rep2 = vs->Reps[2], rep3 = vs->Reps[3];
++  int len = vs->RemainLen;
++  UInt32 globalPos = vs->GlobalPos;
++  UInt32 distanceLimit = vs->DistanceLimit;
++
++  Byte *dictionary = vs->Dictionary;
++  UInt32 dictionarySize = vs->Properties.DictionarySize;
++  UInt32 dictionaryPos = vs->DictionaryPos;
++
++  Byte tempDictionary[4];
++
++  #ifndef _LZMA_IN_CB
++  *inSizeProcessed = 0;
++  #endif
++  *outSizeProcessed = 0;
++  if (len == kLzmaStreamWasFinishedId)
++    return LZMA_RESULT_OK;
++
++  if (dictionarySize == 0)
++  {
++    dictionary = tempDictionary;
++    dictionarySize = 1;
++    tempDictionary[0] = vs->TempDictionary[0];
++  }
++
++  if (len == kLzmaNeedInitId)
++  {
++    {
++      UInt32 numProbs = Literal + ((UInt32)LZMA_LIT_SIZE << (lc + vs->Properties.lp));
++      UInt32 i;
++      for (i = 0; i < numProbs; i++)
++        p[i] = kBitModelTotal >> 1; 
++      rep0 = rep1 = rep2 = rep3 = 1;
++      state = 0;
++      globalPos = 0;
++      distanceLimit = 0;
++      dictionaryPos = 0;
++      dictionary[dictionarySize - 1] = 0;
++      #ifdef _LZMA_IN_CB
++      RC_INIT;
++      #else
++      RC_INIT(inStream, inSize);
++      #endif
++    }
++    len = 0;
++  }
++  while(len != 0 && nowPos < outSize)
++  {
++    UInt32 pos = dictionaryPos - rep0;
++    if (pos >= dictionarySize)
++      pos += dictionarySize;
++    outStream[nowPos++] = dictionary[dictionaryPos] = dictionary[pos];
++    if (++dictionaryPos == dictionarySize)
++      dictionaryPos = 0;
++    len--;
++  }
++  if (dictionaryPos == 0)
++    previousByte = dictionary[dictionarySize - 1];
++  else
++    previousByte = dictionary[dictionaryPos - 1];
++
++  #else /* if !_LZMA_OUT_READ */
++
++  int state = 0;
++  UInt32 rep0 = 1, rep1 = 1, rep2 = 1, rep3 = 1;
++  int len = 0;
++  const Byte *Buffer;
++  const Byte *BufferLim;
++  UInt32 Range;
++  UInt32 Code;
++
++  #ifndef _LZMA_IN_CB
++  *inSizeProcessed = 0;
++  #endif
++  *outSizeProcessed = 0;
++
++  {
++    UInt32 i;
++    UInt32 numProbs = Literal + ((UInt32)LZMA_LIT_SIZE << (lc + vs->Properties.lp));
++    for (i = 0; i < numProbs; i++)
++      p[i] = kBitModelTotal >> 1;
++  }
++  
++  #ifdef _LZMA_IN_CB
++  RC_INIT;
++  #else
++  RC_INIT(inStream, inSize);
++  #endif
++
++  #endif /* _LZMA_OUT_READ */
++
++  while(nowPos < outSize)
++  {
++    CProb *prob;
++    UInt32 bound;
++    int posState = (int)(
++        (nowPos 
++        #ifdef _LZMA_OUT_READ
++        + globalPos
++        #endif
++        )
++        & posStateMask);
++
++    prob = p + IsMatch + (state << kNumPosBitsMax) + posState;
++    IfBit0(prob)
++    {
++      int symbol = 1;
++      UpdateBit0(prob)
++      prob = p + Literal + (LZMA_LIT_SIZE * 
++        (((
++        (nowPos 
++        #ifdef _LZMA_OUT_READ
++        + globalPos
++        #endif
++        )
++        & literalPosMask) << lc) + (previousByte >> (8 - lc))));
++
++      if (state >= kNumLitStates)
++      {
++        int matchByte;
++        #ifdef _LZMA_OUT_READ
++        UInt32 pos = dictionaryPos - rep0;
++        if (pos >= dictionarySize)
++          pos += dictionarySize;
++        matchByte = dictionary[pos];
++        #else
++        matchByte = outStream[nowPos - rep0];
++        #endif
++        do
++        {
++          int bit;
++          CProb *probLit;
++          matchByte <<= 1;
++          bit = (matchByte & 0x100);
++          probLit = prob + 0x100 + bit + symbol;
++          RC_GET_BIT2(probLit, symbol, if (bit != 0) break, if (bit == 0) break)
++        }
++        while (symbol < 0x100);
++      }
++      while (symbol < 0x100)
++      {
++        CProb *probLit = prob + symbol;
++        RC_GET_BIT(probLit, symbol)
++      }
++      previousByte = (Byte)symbol;
++
++      outStream[nowPos++] = previousByte;
++      #ifdef _LZMA_OUT_READ
++      if (distanceLimit < dictionarySize)
++        distanceLimit++;
++
++      dictionary[dictionaryPos] = previousByte;
++      if (++dictionaryPos == dictionarySize)
++        dictionaryPos = 0;
++      #endif
++      if (state < 4) state = 0;
++      else if (state < 10) state -= 3;
++      else state -= 6;
++    }
++    else             
++    {
++      UpdateBit1(prob);
++      prob = p + IsRep + state;
++      IfBit0(prob)
++      {
++        UpdateBit0(prob);
++        rep3 = rep2;
++        rep2 = rep1;
++        rep1 = rep0;
++        state = state < kNumLitStates ? 0 : 3;
++        prob = p + LenCoder;
++      }
++      else
++      {
++        UpdateBit1(prob);
++        prob = p + IsRepG0 + state;
++        IfBit0(prob)
++        {
++          UpdateBit0(prob);
++          prob = p + IsRep0Long + (state << kNumPosBitsMax) + posState;
++          IfBit0(prob)
++          {
++            #ifdef _LZMA_OUT_READ
++            UInt32 pos;
++            #endif
++            UpdateBit0(prob);
++            
++            #ifdef _LZMA_OUT_READ
++            if (distanceLimit == 0)
++            #else
++            if (nowPos == 0)
++            #endif
++              return LZMA_RESULT_DATA_ERROR;
++            
++            state = state < kNumLitStates ? 9 : 11;
++            #ifdef _LZMA_OUT_READ
++            pos = dictionaryPos - rep0;
++            if (pos >= dictionarySize)
++              pos += dictionarySize;
++            previousByte = dictionary[pos];
++            dictionary[dictionaryPos] = previousByte;
++            if (++dictionaryPos == dictionarySize)
++              dictionaryPos = 0;
++            #else
++            previousByte = outStream[nowPos - rep0];
++            #endif
++            outStream[nowPos++] = previousByte;
++            #ifdef _LZMA_OUT_READ
++            if (distanceLimit < dictionarySize)
++              distanceLimit++;
++            #endif
++
++            continue;
++          }
++          else
++          {
++            UpdateBit1(prob);
++          }
++        }
++        else
++        {
++          UInt32 distance;
++          UpdateBit1(prob);
++          prob = p + IsRepG1 + state;
++          IfBit0(prob)
++          {
++            UpdateBit0(prob);
++            distance = rep1;
++          }
++          else 
++          {
++            UpdateBit1(prob);
++            prob = p + IsRepG2 + state;
++            IfBit0(prob)
++            {
++              UpdateBit0(prob);
++              distance = rep2;
++            }
++            else
++            {
++              UpdateBit1(prob);
++              distance = rep3;
++              rep3 = rep2;
++            }
++            rep2 = rep1;
++          }
++          rep1 = rep0;
++          rep0 = distance;
++        }
++        state = state < kNumLitStates ? 8 : 11;
++        prob = p + RepLenCoder;
++      }
++      {
++        int numBits, offset;
++        CProb *probLen = prob + LenChoice;
++        IfBit0(probLen)
++        {
++          UpdateBit0(probLen);
++          probLen = prob + LenLow + (posState << kLenNumLowBits);
++          offset = 0;
++          numBits = kLenNumLowBits;
++        }
++        else
++        {
++          UpdateBit1(probLen);
++          probLen = prob + LenChoice2;
++          IfBit0(probLen)
++          {
++            UpdateBit0(probLen);
++            probLen = prob + LenMid + (posState << kLenNumMidBits);
++            offset = kLenNumLowSymbols;
++            numBits = kLenNumMidBits;
++          }
++          else
++          {
++            UpdateBit1(probLen);
++            probLen = prob + LenHigh;
++            offset = kLenNumLowSymbols + kLenNumMidSymbols;
++            numBits = kLenNumHighBits;
++          }
++        }
++        RangeDecoderBitTreeDecode(probLen, numBits, len);
++        len += offset;
++      }
++
++      if (state < 4)
++      {
++        int posSlot;
++        state += kNumLitStates;
++        prob = p + PosSlot +
++            ((len < kNumLenToPosStates ? len : kNumLenToPosStates - 1) << 
++            kNumPosSlotBits);
++        RangeDecoderBitTreeDecode(prob, kNumPosSlotBits, posSlot);
++        if (posSlot >= kStartPosModelIndex)
++        {
++          int numDirectBits = ((posSlot >> 1) - 1);
++          rep0 = (2 | ((UInt32)posSlot & 1));
++          if (posSlot < kEndPosModelIndex)
++          {
++            rep0 <<= numDirectBits;
++            prob = p + SpecPos + rep0 - posSlot - 1;
++          }
++          else
++          {
++            numDirectBits -= kNumAlignBits;
++            do
++            {
++              RC_NORMALIZE
++              Range >>= 1;
++              rep0 <<= 1;
++              if (Code >= Range)
++              {
++                Code -= Range;
++                rep0 |= 1;
++              }
++            }
++            while (--numDirectBits != 0);
++            prob = p + Align;
++            rep0 <<= kNumAlignBits;
++            numDirectBits = kNumAlignBits;
++          }
++          {
++            int i = 1;
++            int mi = 1;
++            do
++            {
++              CProb *prob3 = prob + mi;
++              RC_GET_BIT2(prob3, mi, ; , rep0 |= i);
++              i <<= 1;
++            }
++            while(--numDirectBits != 0);
++          }
++        }
++        else
++          rep0 = posSlot;
++        if (++rep0 == (UInt32)(0))
++        {
++          /* it's for stream version */
++          len = kLzmaStreamWasFinishedId;
++          break;
++        }
++      }
++
++      len += kMatchMinLen;
++      #ifdef _LZMA_OUT_READ
++      if (rep0 > distanceLimit) 
++      #else
++      if (rep0 > nowPos)
++      #endif
++        return LZMA_RESULT_DATA_ERROR;
++
++      #ifdef _LZMA_OUT_READ
++      if (dictionarySize - distanceLimit > (UInt32)len)
++        distanceLimit += len;
++      else
++        distanceLimit = dictionarySize;
++      #endif
++
++      do
++      {
++        #ifdef _LZMA_OUT_READ
++        UInt32 pos = dictionaryPos - rep0;
++        if (pos >= dictionarySize)
++          pos += dictionarySize;
++        previousByte = dictionary[pos];
++        dictionary[dictionaryPos] = previousByte;
++        if (++dictionaryPos == dictionarySize)
++          dictionaryPos = 0;
++        #else
++        previousByte = outStream[nowPos - rep0];
++        #endif
++        len--;
++        outStream[nowPos++] = previousByte;
++      }
++      while(len != 0 && nowPos < outSize);
++    }
++  }
++  RC_NORMALIZE;
++
++  #ifdef _LZMA_OUT_READ
++  vs->Range = Range;
++  vs->Code = Code;
++  vs->DictionaryPos = dictionaryPos;
++  vs->GlobalPos = globalPos + (UInt32)nowPos;
++  vs->DistanceLimit = distanceLimit;
++  vs->Reps[0] = rep0;
++  vs->Reps[1] = rep1;
++  vs->Reps[2] = rep2;
++  vs->Reps[3] = rep3;
++  vs->State = state;
++  vs->RemainLen = len;
++  vs->TempDictionary[0] = tempDictionary[0];
++  #endif
++
++  #ifdef _LZMA_IN_CB
++  vs->Buffer = Buffer;
++  vs->BufferLim = BufferLim;
++  #else
++  *inSizeProcessed = (SizeT)(Buffer - inStream);
++  #endif
++  *outSizeProcessed = nowPos;
++  return LZMA_RESULT_OK;
++}
+diff --git a/fs/squashfs/LzmaDecode.h b/fs/squashfs/LzmaDecode.h
+new file mode 100644
+index 0000000..8382fa8
+--- /dev/null
++++ b/fs/squashfs/LzmaDecode.h
+@@ -0,0 +1,113 @@
++/* 
++  LzmaDecode.h
++  LZMA Decoder interface
++
++  LZMA SDK 4.40 Copyright (c) 1999-2006 Igor Pavlov (2006-05-01)
++  http://www.7-zip.org/
++
++  LZMA SDK is licensed under two licenses:
++  1) GNU Lesser General Public License (GNU LGPL)
++  2) Common Public License (CPL)
++  It means that you can select one of these two licenses and 
++  follow rules of that license.
++
++  SPECIAL EXCEPTION:
++  Igor Pavlov, as the author of this code, expressly permits you to 
++  statically or dynamically link your code (or bind by name) to the 
++  interfaces of this file without subjecting your linked code to the 
++  terms of the CPL or GNU LGPL. Any modifications or additions 
++  to this file, however, are subject to the LGPL or CPL terms.
++*/
++
++#ifndef __LZMADECODE_H
++#define __LZMADECODE_H
++
++#include "LzmaTypes.h"
++
++/* #define _LZMA_IN_CB */
++/* Use callback for input data */
++
++/* #define _LZMA_OUT_READ */
++/* Use read function for output data */
++
++/* #define _LZMA_PROB32 */
++/* It can increase speed on some 32-bit CPUs, 
++   but memory usage will be doubled in that case */
++
++/* #define _LZMA_LOC_OPT */
++/* Enable local speed optimizations inside code */
++
++#ifdef _LZMA_PROB32
++#define CProb UInt32
++#else
++#define CProb UInt16
++#endif
++
++#define LZMA_RESULT_OK 0
++#define LZMA_RESULT_DATA_ERROR 1
++
++#ifdef _LZMA_IN_CB
++typedef struct _ILzmaInCallback
++{
++  int (*Read)(void *object, const unsigned char **buffer, SizeT *bufferSize);
++} ILzmaInCallback;
++#endif
++
++#define LZMA_BASE_SIZE 1846
++#define LZMA_LIT_SIZE 768
++
++#define LZMA_PROPERTIES_SIZE 5
++
++typedef struct _CLzmaProperties
++{
++  int lc;
++  int lp;
++  int pb;
++  #ifdef _LZMA_OUT_READ
++  UInt32 DictionarySize;
++  #endif
++}CLzmaProperties;
++
++int LzmaDecodeProperties(CLzmaProperties *propsRes, const unsigned char *propsData, int size);
++
++#define LzmaGetNumProbs(Properties) (LZMA_BASE_SIZE + (LZMA_LIT_SIZE << ((Properties)->lc + (Properties)->lp)))
++
++#define kLzmaNeedInitId (-2)
++
++typedef struct _CLzmaDecoderState
++{
++  CLzmaProperties Properties;
++  CProb *Probs;
++
++  #ifdef _LZMA_IN_CB
++  const unsigned char *Buffer;
++  const unsigned char *BufferLim;
++  #endif
++
++  #ifdef _LZMA_OUT_READ
++  unsigned char *Dictionary;
++  UInt32 Range;
++  UInt32 Code;
++  UInt32 DictionaryPos;
++  UInt32 GlobalPos;
++  UInt32 DistanceLimit;
++  UInt32 Reps[4];
++  int State;
++  int RemainLen;
++  unsigned char TempDictionary[4];
++  #endif
++} CLzmaDecoderState;
++
++#ifdef _LZMA_OUT_READ
++#define LzmaDecoderInit(vs) { (vs)->RemainLen = kLzmaNeedInitId; }
++#endif
++
++int LzmaDecode(CLzmaDecoderState *vs,
++    #ifdef _LZMA_IN_CB
++    ILzmaInCallback *inCallback,
++    #else
++    const unsigned char *inStream, SizeT inSize, SizeT *inSizeProcessed,
++    #endif
++    unsigned char *outStream, SizeT outSize, SizeT *outSizeProcessed);
++
++#endif
+diff --git a/fs/squashfs/LzmaDecodeSize.c b/fs/squashfs/LzmaDecodeSize.c
+new file mode 100644
+index 0000000..cbb512c
+--- /dev/null
++++ b/fs/squashfs/LzmaDecodeSize.c
+@@ -0,0 +1,712 @@
++/*
++  LzmaDecodeSize.c
++  LZMA Decoder (optimized for Size version)
++  
++  LZMA SDK 4.40 Copyright (c) 1999-2006 Igor Pavlov (2006-05-01)
++  http://www.7-zip.org/
++
++  LZMA SDK is licensed under two licenses:
++  1) GNU Lesser General Public License (GNU LGPL)
++  2) Common Public License (CPL)
++  It means that you can select one of these two licenses and 
++  follow rules of that license.
++
++  SPECIAL EXCEPTION:
++  Igor Pavlov, as the author of this code, expressly permits you to 
++  statically or dynamically link your code (or bind by name) to the 
++  interfaces of this file without subjecting your linked code to the 
++  terms of the CPL or GNU LGPL. Any modifications or additions 
++  to this file, however, are subject to the LGPL or CPL terms.
++*/
++
++#include "LzmaDecode.h"
++
++#define kNumTopBits 24
++#define kTopValue ((UInt32)1 << kNumTopBits)
++
++#define kNumBitModelTotalBits 11
++#define kBitModelTotal (1 << kNumBitModelTotalBits)
++#define kNumMoveBits 5
++
++typedef struct _CRangeDecoder
++{
++  const Byte *Buffer;
++  const Byte *BufferLim;
++  UInt32 Range;
++  UInt32 Code;
++  #ifdef _LZMA_IN_CB
++  ILzmaInCallback *InCallback;
++  int Result;
++  #endif
++  int ExtraBytes;
++} CRangeDecoder;
++
++Byte RangeDecoderReadByte(CRangeDecoder *rd)
++{
++  if (rd->Buffer == rd->BufferLim)
++  {
++    #ifdef _LZMA_IN_CB
++    SizeT size;
++    rd->Result = rd->InCallback->Read(rd->InCallback, &rd->Buffer, &size);
++    rd->BufferLim = rd->Buffer + size;
++    if (size == 0)
++    #endif
++    {
++      rd->ExtraBytes = 1;
++      return 0xFF;
++    }
++  }
++  return (*rd->Buffer++);
++}
++
++/* #define ReadByte (*rd->Buffer++) */
++#define ReadByte (RangeDecoderReadByte(rd))
++
++void RangeDecoderInit(CRangeDecoder *rd
++  #ifndef _LZMA_IN_CB
++    , const Byte *stream, SizeT bufferSize
++  #endif
++    )
++{
++  int i;
++  #ifdef _LZMA_IN_CB
++  rd->Buffer = rd->BufferLim = 0;
++  #else
++  rd->Buffer = stream;
++  rd->BufferLim = stream + bufferSize;
++  #endif
++  rd->ExtraBytes = 0;
++  rd->Code = 0;
++  rd->Range = (0xFFFFFFFF);
++  for(i = 0; i < 5; i++)
++    rd->Code = (rd->Code << 8) | ReadByte;
++}
++
++#define RC_INIT_VAR UInt32 range = rd->Range; UInt32 code = rd->Code;        
++#define RC_FLUSH_VAR rd->Range = range; rd->Code = code;
++#define RC_NORMALIZE if (range < kTopValue) { range <<= 8; code = (code << 8) | ReadByte; }
++
++UInt32 RangeDecoderDecodeDirectBits(CRangeDecoder *rd, int numTotalBits)
++{
++  RC_INIT_VAR
++  UInt32 result = 0;
++  int i;
++  for (i = numTotalBits; i != 0; i--)
++  {
++    /* UInt32 t; */
++    range >>= 1;
++
++    result <<= 1;
++    if (code >= range)
++    {
++      code -= range;
++      result |= 1;
++    }
++    /*
++    t = (code - range) >> 31;
++    t &= 1;
++    code -= range & (t - 1);
++    result = (result + result) | (1 - t);
++    */
++    RC_NORMALIZE
++  }
++  RC_FLUSH_VAR
++  return result;
++}
++
++int RangeDecoderBitDecode(CProb *prob, CRangeDecoder *rd)
++{
++  UInt32 bound = (rd->Range >> kNumBitModelTotalBits) * *prob;
++  if (rd->Code < bound)
++  {
++    rd->Range = bound;
++    *prob += (kBitModelTotal - *prob) >> kNumMoveBits;
++    if (rd->Range < kTopValue)
++    {
++      rd->Code = (rd->Code << 8) | ReadByte;
++      rd->Range <<= 8;
++    }
++    return 0;
++  }
++  else
++  {
++    rd->Range -= bound;
++    rd->Code -= bound;
++    *prob -= (*prob) >> kNumMoveBits;
++    if (rd->Range < kTopValue)
++    {
++      rd->Code = (rd->Code << 8) | ReadByte;
++      rd->Range <<= 8;
++    }
++    return 1;
++  }
++}
++
++#define RC_GET_BIT2(prob, mi, A0, A1) \
++  UInt32 bound = (range >> kNumBitModelTotalBits) * *prob; \
++  if (code < bound) \
++    { A0; range = bound; *prob += (kBitModelTotal - *prob) >> kNumMoveBits; mi <<= 1; } \
++  else \
++    { A1; range -= bound; code -= bound; *prob -= (*prob) >> kNumMoveBits; mi = (mi + mi) + 1; } \
++  RC_NORMALIZE
++
++#define RC_GET_BIT(prob, mi) RC_GET_BIT2(prob, mi, ; , ;)               
++
++int RangeDecoderBitTreeDecode(CProb *probs, int numLevels, CRangeDecoder *rd)
++{
++  int mi = 1;
++  int i;
++  #ifdef _LZMA_LOC_OPT
++  RC_INIT_VAR
++  #endif
++  for(i = numLevels; i != 0; i--)
++  {
++    #ifdef _LZMA_LOC_OPT
++    CProb *prob = probs + mi;
++    RC_GET_BIT(prob, mi)
++    #else
++    mi = (mi + mi) + RangeDecoderBitDecode(probs + mi, rd);
++    #endif
++  }
++  #ifdef _LZMA_LOC_OPT
++  RC_FLUSH_VAR
++  #endif
++  return mi - (1 << numLevels);
++}
++
++int RangeDecoderReverseBitTreeDecode(CProb *probs, int numLevels, CRangeDecoder *rd)
++{
++  int mi = 1;
++  int i;
++  int symbol = 0;
++  #ifdef _LZMA_LOC_OPT
++  RC_INIT_VAR
++  #endif
++  for(i = 0; i < numLevels; i++)
++  {
++    #ifdef _LZMA_LOC_OPT
++    CProb *prob = probs + mi;
++    RC_GET_BIT2(prob, mi, ; , symbol |= (1 << i))
++    #else
++    int bit = RangeDecoderBitDecode(probs + mi, rd);
++    mi = mi + mi + bit;
++    symbol |= (bit << i);
++    #endif
++  }
++  #ifdef _LZMA_LOC_OPT
++  RC_FLUSH_VAR
++  #endif
++  return symbol;
++}
++
++Byte LzmaLiteralDecode(CProb *probs, CRangeDecoder *rd)
++{ 
++  int symbol = 1;
++  #ifdef _LZMA_LOC_OPT
++  RC_INIT_VAR
++  #endif
++  do
++  {
++    #ifdef _LZMA_LOC_OPT
++    CProb *prob = probs + symbol;
++    RC_GET_BIT(prob, symbol)
++    #else
++    symbol = (symbol + symbol) | RangeDecoderBitDecode(probs + symbol, rd);
++    #endif
++  }
++  while (symbol < 0x100);
++  #ifdef _LZMA_LOC_OPT
++  RC_FLUSH_VAR
++  #endif
++  return symbol;
++}
++
++Byte LzmaLiteralDecodeMatch(CProb *probs, CRangeDecoder *rd, Byte matchByte)
++{ 
++  int symbol = 1;
++  #ifdef _LZMA_LOC_OPT
++  RC_INIT_VAR
++  #endif
++  do
++  {
++    int bit;
++    int matchBit = (matchByte >> 7) & 1;
++    matchByte <<= 1;
++    #ifdef _LZMA_LOC_OPT
++    {
++      CProb *prob = probs + 0x100 + (matchBit << 8) + symbol;
++      RC_GET_BIT2(prob, symbol, bit = 0, bit = 1)
++    }
++    #else
++    bit = RangeDecoderBitDecode(probs + 0x100 + (matchBit << 8) + symbol, rd);
++    symbol = (symbol << 1) | bit;
++    #endif
++    if (matchBit != bit)
++    {
++      while (symbol < 0x100)
++      {
++        #ifdef _LZMA_LOC_OPT
++        CProb *prob = probs + symbol;
++        RC_GET_BIT(prob, symbol)
++        #else
++        symbol = (symbol + symbol) | RangeDecoderBitDecode(probs + symbol, rd);
++        #endif
++      }
++      break;
++    }
++  }
++  while (symbol < 0x100);
++  #ifdef _LZMA_LOC_OPT
++  RC_FLUSH_VAR
++  #endif
++  return symbol;
++}
++
++#define kNumPosBitsMax 4
++#define kNumPosStatesMax (1 << kNumPosBitsMax)
++
++#define kLenNumLowBits 3
++#define kLenNumLowSymbols (1 << kLenNumLowBits)
++#define kLenNumMidBits 3
++#define kLenNumMidSymbols (1 << kLenNumMidBits)
++#define kLenNumHighBits 8
++#define kLenNumHighSymbols (1 << kLenNumHighBits)
++
++#define LenChoice 0
++#define LenChoice2 (LenChoice + 1)
++#define LenLow (LenChoice2 + 1)
++#define LenMid (LenLow + (kNumPosStatesMax << kLenNumLowBits))
++#define LenHigh (LenMid + (kNumPosStatesMax << kLenNumMidBits))
++#define kNumLenProbs (LenHigh + kLenNumHighSymbols) 
++
++int LzmaLenDecode(CProb *p, CRangeDecoder *rd, int posState)
++{
++  if(RangeDecoderBitDecode(p + LenChoice, rd) == 0)
++    return RangeDecoderBitTreeDecode(p + LenLow +
++        (posState << kLenNumLowBits), kLenNumLowBits, rd);
++  if(RangeDecoderBitDecode(p + LenChoice2, rd) == 0)
++    return kLenNumLowSymbols + RangeDecoderBitTreeDecode(p + LenMid +
++        (posState << kLenNumMidBits), kLenNumMidBits, rd);
++  return kLenNumLowSymbols + kLenNumMidSymbols + 
++      RangeDecoderBitTreeDecode(p + LenHigh, kLenNumHighBits, rd);
++}
++
++#define kNumStates 12
++#define kNumLitStates 7
++
++#define kStartPosModelIndex 4
++#define kEndPosModelIndex 14
++#define kNumFullDistances (1 << (kEndPosModelIndex >> 1))
++
++#define kNumPosSlotBits 6
++#define kNumLenToPosStates 4
++
++#define kNumAlignBits 4
++#define kAlignTableSize (1 << kNumAlignBits)
++
++#define kMatchMinLen 2
++
++#define IsMatch 0
++#define IsRep (IsMatch + (kNumStates << kNumPosBitsMax))
++#define IsRepG0 (IsRep + kNumStates)
++#define IsRepG1 (IsRepG0 + kNumStates)
++#define IsRepG2 (IsRepG1 + kNumStates)
++#define IsRep0Long (IsRepG2 + kNumStates)
++#define PosSlot (IsRep0Long + (kNumStates << kNumPosBitsMax))
++#define SpecPos (PosSlot + (kNumLenToPosStates << kNumPosSlotBits))
++#define Align (SpecPos + kNumFullDistances - kEndPosModelIndex)
++#define LenCoder (Align + kAlignTableSize)
++#define RepLenCoder (LenCoder + kNumLenProbs)
++#define Literal (RepLenCoder + kNumLenProbs)
++
++#if Literal != LZMA_BASE_SIZE
++StopCompilingDueBUG
++#endif
++
++int LzmaDecodeProperties(CLzmaProperties *propsRes, const unsigned char *propsData, int size)
++{
++  unsigned char prop0;
++  if (size < LZMA_PROPERTIES_SIZE)
++    return LZMA_RESULT_DATA_ERROR;
++  prop0 = propsData[0];
++  if (prop0 >= (9 * 5 * 5))
++    return LZMA_RESULT_DATA_ERROR;
++  {
++    for (propsRes->pb = 0; prop0 >= (9 * 5); propsRes->pb++, prop0 -= (9 * 5));
++    for (propsRes->lp = 0; prop0 >= 9; propsRes->lp++, prop0 -= 9);
++    propsRes->lc = prop0;
++    /*
++    unsigned char remainder = (unsigned char)(prop0 / 9);
++    propsRes->lc = prop0 % 9;
++    propsRes->pb = remainder / 5;
++    propsRes->lp = remainder % 5;
++    */
++  }
++
++  #ifdef _LZMA_OUT_READ
++  {
++    int i;
++    propsRes->DictionarySize = 0;
++    for (i = 0; i < 4; i++)
++      propsRes->DictionarySize += (UInt32)(propsData[1 + i]) << (i * 8);
++    if (propsRes->DictionarySize == 0)
++      propsRes->DictionarySize = 1;
++  }
++  #endif
++  return LZMA_RESULT_OK;
++}
++
++#define kLzmaStreamWasFinishedId (-1)
++
++int LzmaDecode(CLzmaDecoderState *vs,
++    #ifdef _LZMA_IN_CB
++    ILzmaInCallback *InCallback,
++    #else
++    const unsigned char *inStream, SizeT inSize, SizeT *inSizeProcessed,
++    #endif
++    unsigned char *outStream, SizeT outSize, SizeT *outSizeProcessed)
++{
++  CProb *p = vs->Probs;
++  SizeT nowPos = 0;
++  Byte previousByte = 0;
++  UInt32 posStateMask = (1 << (vs->Properties.pb)) - 1;
++  UInt32 literalPosMask = (1 << (vs->Properties.lp)) - 1;
++  int lc = vs->Properties.lc;
++  CRangeDecoder rd;
++
++  #ifdef _LZMA_OUT_READ
++  
++  int state = vs->State;
++  UInt32 rep0 = vs->Reps[0], rep1 = vs->Reps[1], rep2 = vs->Reps[2], rep3 = vs->Reps[3];
++  int len = vs->RemainLen;
++  UInt32 globalPos = vs->GlobalPos;
++  UInt32 distanceLimit = vs->DistanceLimit;
++
++  Byte *dictionary = vs->Dictionary;
++  UInt32 dictionarySize = vs->Properties.DictionarySize;
++  UInt32 dictionaryPos = vs->DictionaryPos;
++
++  Byte tempDictionary[4];
++
++  rd.Range = vs->Range;
++  rd.Code = vs->Code;
++  #ifdef _LZMA_IN_CB
++  rd.InCallback = InCallback;
++  rd.Buffer = vs->Buffer;
++  rd.BufferLim = vs->BufferLim;
++  #else
++  rd.Buffer = inStream;
++  rd.BufferLim = inStream + inSize;
++  #endif
++
++  #ifndef _LZMA_IN_CB
++  *inSizeProcessed = 0;
++  #endif
++  *outSizeProcessed = 0;
++  if (len == kLzmaStreamWasFinishedId)
++    return LZMA_RESULT_OK;
++
++  if (dictionarySize == 0)
++  {
++    dictionary = tempDictionary;
++    dictionarySize = 1;
++    tempDictionary[0] = vs->TempDictionary[0];
++  }
++
++  if (len == kLzmaNeedInitId)
++  {
++    {
++      UInt32 numProbs = Literal + ((UInt32)LZMA_LIT_SIZE << (lc + vs->Properties.lp));
++      UInt32 i;
++      for (i = 0; i < numProbs; i++)
++        p[i] = kBitModelTotal >> 1; 
++      rep0 = rep1 = rep2 = rep3 = 1;
++      state = 0;
++      globalPos = 0;
++      distanceLimit = 0;
++      dictionaryPos = 0;
++      dictionary[dictionarySize - 1] = 0;
++      RangeDecoderInit(&rd
++          #ifndef _LZMA_IN_CB
++          , inStream, inSize
++          #endif
++          );
++      #ifdef _LZMA_IN_CB
++      if (rd.Result != LZMA_RESULT_OK)
++        return rd.Result;
++      #endif
++      if (rd.ExtraBytes != 0)
++        return LZMA_RESULT_DATA_ERROR;
++    }
++    len = 0;
++  }
++  while(len != 0 && nowPos < outSize)
++  {
++    UInt32 pos = dictionaryPos - rep0;
++    if (pos >= dictionarySize)
++      pos += dictionarySize;
++    outStream[nowPos++] = dictionary[dictionaryPos] = dictionary[pos];
++    if (++dictionaryPos == dictionarySize)
++      dictionaryPos = 0;
++    len--;
++  }
++  if (dictionaryPos == 0)
++    previousByte = dictionary[dictionarySize - 1];
++  else
++    previousByte = dictionary[dictionaryPos - 1];
++
++  #ifdef _LZMA_IN_CB
++  rd.Result = LZMA_RESULT_OK;
++  #endif
++  rd.ExtraBytes = 0;
++
++  #else /* if !_LZMA_OUT_READ */
++
++  int state = 0;
++  UInt32 rep0 = 1, rep1 = 1, rep2 = 1, rep3 = 1;
++  int len = 0;
++
++  #ifndef _LZMA_IN_CB
++  *inSizeProcessed = 0;
++  #endif
++  *outSizeProcessed = 0;
++
++  {
++    UInt32 i;
++    UInt32 numProbs = Literal + ((UInt32)LZMA_LIT_SIZE << (lc + vs->Properties.lp));
++    for (i = 0; i < numProbs; i++)
++      p[i] = kBitModelTotal >> 1;
++  }
++  
++  #ifdef _LZMA_IN_CB
++  rd.InCallback = InCallback;
++  #endif
++  RangeDecoderInit(&rd
++      #ifndef _LZMA_IN_CB
++      , inStream, inSize
++      #endif
++      );
++
++  #ifdef _LZMA_IN_CB
++  if (rd.Result != LZMA_RESULT_OK)
++    return rd.Result;
++  #endif
++  if (rd.ExtraBytes != 0)
++    return LZMA_RESULT_DATA_ERROR;
++
++  #endif /* _LZMA_OUT_READ */
++
++
++  while(nowPos < outSize)
++  {
++    int posState = (int)(
++        (nowPos 
++        #ifdef _LZMA_OUT_READ
++        + globalPos
++        #endif
++        )
++        & posStateMask);
++    #ifdef _LZMA_IN_CB
++    if (rd.Result != LZMA_RESULT_OK)
++      return rd.Result;
++    #endif
++    if (rd.ExtraBytes != 0)
++      return LZMA_RESULT_DATA_ERROR;
++    if (RangeDecoderBitDecode(p + IsMatch + (state << kNumPosBitsMax) + posState, &rd) == 0)
++    {
++      CProb *probs = p + Literal + (LZMA_LIT_SIZE * 
++        (((
++        (nowPos 
++        #ifdef _LZMA_OUT_READ
++        + globalPos
++        #endif
++        )
++        & literalPosMask) << lc) + (previousByte >> (8 - lc))));
++
++      if (state >= kNumLitStates)
++      {
++        Byte matchByte;
++        #ifdef _LZMA_OUT_READ
++        UInt32 pos = dictionaryPos - rep0;
++        if (pos >= dictionarySize)
++          pos += dictionarySize;
++        matchByte = dictionary[pos];
++        #else
++        matchByte = outStream[nowPos - rep0];
++        #endif
++        previousByte = LzmaLiteralDecodeMatch(probs, &rd, matchByte);
++      }
++      else
++        previousByte = LzmaLiteralDecode(probs, &rd);
++      outStream[nowPos++] = previousByte;
++      #ifdef _LZMA_OUT_READ
++      if (distanceLimit < dictionarySize)
++        distanceLimit++;
++
++      dictionary[dictionaryPos] = previousByte;
++      if (++dictionaryPos == dictionarySize)
++        dictionaryPos = 0;
++      #endif
++      if (state < 4) state = 0;
++      else if (state < 10) state -= 3;
++      else state -= 6;
++    }
++    else             
++    {
++      if (RangeDecoderBitDecode(p + IsRep + state, &rd) == 1)
++      {
++        if (RangeDecoderBitDecode(p + IsRepG0 + state, &rd) == 0)
++        {
++          if (RangeDecoderBitDecode(p + IsRep0Long + (state << kNumPosBitsMax) + posState, &rd) == 0)
++          {
++            #ifdef _LZMA_OUT_READ
++            UInt32 pos;
++            #endif
++      
++            #ifdef _LZMA_OUT_READ
++            if (distanceLimit == 0)
++            #else
++            if (nowPos == 0)
++            #endif
++              return LZMA_RESULT_DATA_ERROR;
++
++            state = state < 7 ? 9 : 11;
++            #ifdef _LZMA_OUT_READ
++            pos = dictionaryPos - rep0;
++            if (pos >= dictionarySize)
++              pos += dictionarySize;
++            previousByte = dictionary[pos];
++            dictionary[dictionaryPos] = previousByte;
++            if (++dictionaryPos == dictionarySize)
++              dictionaryPos = 0;
++            #else
++            previousByte = outStream[nowPos - rep0];
++            #endif
++            outStream[nowPos++] = previousByte;
++
++            #ifdef _LZMA_OUT_READ
++            if (distanceLimit < dictionarySize)
++              distanceLimit++;
++            #endif
++            continue;
++          }
++        }
++        else
++        {
++          UInt32 distance;
++          if(RangeDecoderBitDecode(p + IsRepG1 + state, &rd) == 0)
++            distance = rep1;
++          else 
++          {
++            if(RangeDecoderBitDecode(p + IsRepG2 + state, &rd) == 0)
++              distance = rep2;
++            else
++            {
++              distance = rep3;
++              rep3 = rep2;
++            }
++            rep2 = rep1;
++          }
++          rep1 = rep0;
++          rep0 = distance;
++        }
++        len = LzmaLenDecode(p + RepLenCoder, &rd, posState);
++        state = state < 7 ? 8 : 11;
++      }
++      else
++      {
++        int posSlot;
++        rep3 = rep2;
++        rep2 = rep1;
++        rep1 = rep0;
++        state = state < 7 ? 7 : 10;
++        len = LzmaLenDecode(p + LenCoder, &rd, posState);
++        posSlot = RangeDecoderBitTreeDecode(p + PosSlot +
++            ((len < kNumLenToPosStates ? len : kNumLenToPosStates - 1) << 
++            kNumPosSlotBits), kNumPosSlotBits, &rd);
++        if (posSlot >= kStartPosModelIndex)
++        {
++          int numDirectBits = ((posSlot >> 1) - 1);
++          rep0 = ((2 | ((UInt32)posSlot & 1)) << numDirectBits);
++          if (posSlot < kEndPosModelIndex)
++          {
++            rep0 += RangeDecoderReverseBitTreeDecode(
++                p + SpecPos + rep0 - posSlot - 1, numDirectBits, &rd);
++          }
++          else
++          {
++            rep0 += RangeDecoderDecodeDirectBits(&rd, 
++                numDirectBits - kNumAlignBits) << kNumAlignBits;
++            rep0 += RangeDecoderReverseBitTreeDecode(p + Align, kNumAlignBits, &rd);
++          }
++        }
++        else
++          rep0 = posSlot;
++        if (++rep0 == (UInt32)(0))
++        {
++          /* it's for stream version */
++          len = kLzmaStreamWasFinishedId;
++          break;
++        }
++      }
++
++      len += kMatchMinLen;
++      #ifdef _LZMA_OUT_READ
++      if (rep0 > distanceLimit) 
++      #else
++      if (rep0 > nowPos)
++      #endif
++        return LZMA_RESULT_DATA_ERROR;
++
++      #ifdef _LZMA_OUT_READ
++      if (dictionarySize - distanceLimit > (UInt32)len)
++        distanceLimit += len;
++      else
++        distanceLimit = dictionarySize;
++      #endif
++
++      do
++      {
++        #ifdef _LZMA_OUT_READ
++        UInt32 pos = dictionaryPos - rep0;
++        if (pos >= dictionarySize)
++          pos += dictionarySize;
++        previousByte = dictionary[pos];
++        dictionary[dictionaryPos] = previousByte;
++        if (++dictionaryPos == dictionarySize)
++          dictionaryPos = 0;
++        #else
++        previousByte = outStream[nowPos - rep0];
++        #endif
++        len--;
++        outStream[nowPos++] = previousByte;
++      }
++      while(len != 0 && nowPos < outSize);
++    }
++  }
++
++
++  #ifdef _LZMA_OUT_READ
++  vs->Range = rd.Range;
++  vs->Code = rd.Code;
++  vs->DictionaryPos = dictionaryPos;
++  vs->GlobalPos = globalPos + (UInt32)nowPos;
++  vs->DistanceLimit = distanceLimit;
++  vs->Reps[0] = rep0;
++  vs->Reps[1] = rep1;
++  vs->Reps[2] = rep2;
++  vs->Reps[3] = rep3;
++  vs->State = state;
++  vs->RemainLen = len;
++  vs->TempDictionary[0] = tempDictionary[0];
++  #endif
++
++  #ifdef _LZMA_IN_CB
++  vs->Buffer = rd.Buffer;
++  vs->BufferLim = rd.BufferLim;
++  #else
++  *inSizeProcessed = (SizeT)(rd.Buffer - inStream);
++  #endif
++  *outSizeProcessed = nowPos;
++  return LZMA_RESULT_OK;
++}
+diff --git a/fs/squashfs/LzmaTypes.h b/fs/squashfs/LzmaTypes.h
+new file mode 100644
+index 0000000..5e860c9
+--- /dev/null
++++ b/fs/squashfs/LzmaTypes.h
+@@ -0,0 +1,45 @@
++/* 
++LzmaTypes.h 
++
++Types for LZMA Decoder
++
++This file written and distributed to public domain by Igor Pavlov.
++This file is part of LZMA SDK 4.40 (2006-05-01)
++*/
++
++#ifndef __LZMATYPES_H
++#define __LZMATYPES_H
++
++#ifndef _7ZIP_BYTE_DEFINED
++#define _7ZIP_BYTE_DEFINED
++typedef unsigned char Byte;
++#endif 
++
++#ifndef _7ZIP_UINT16_DEFINED
++#define _7ZIP_UINT16_DEFINED
++typedef unsigned short UInt16;
++#endif 
++
++#ifndef _7ZIP_UINT32_DEFINED
++#define _7ZIP_UINT32_DEFINED
++#ifdef _LZMA_UINT32_IS_ULONG
++typedef unsigned long UInt32;
++#else
++typedef unsigned int UInt32;
++#endif
++#endif 
++
++/* #define _LZMA_NO_SYSTEM_SIZE_T */
++/* You can use it, if you don't want <stddef.h> */
++
++#ifndef _7ZIP_SIZET_DEFINED
++#define _7ZIP_SIZET_DEFINED
++#ifdef _LZMA_NO_SYSTEM_SIZE_T
++typedef UInt32 SizeT;
++#else
++#include <stddef.h>
++typedef size_t SizeT;
++#endif
++#endif
++
++#endif
+diff --git a/fs/squashfs/Makefile b/fs/squashfs/Makefile
+index 1bc7b06..371ada4 100644
+--- a/fs/squashfs/Makefile
++++ b/fs/squashfs/Makefile
+@@ -2,6 +2,16 @@
+ # Makefile for the linux squashfs routines.
+ #
+ 
++-include /tmp/sqvars.mk
++
++obj-$(CONFIG_SQUASHFS_LZMA) += unlzma.o sqlzma.o
++unlzma-y := module.o
++sqlzma-y := uncomp.o
+ obj-$(CONFIG_SQUASHFS) += squashfs.o
++
++ifdef CONFIG_SQUASHFS_LZMA
++	squashfs-y += unlzma.o sqlzma.o
++endif
++
+ squashfs-y += inode.o
+ squashfs-y += squashfs2_0.o
+diff --git a/fs/squashfs/inode.c b/fs/squashfs/inode.c
+index 911ec11..8e0f7f3 100644
+--- a/fs/squashfs/inode.c
++++ b/fs/squashfs/inode.c
+@@ -35,7 +35,34 @@
+ 
+ #include "squashfs.h"
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++#include <linux/sqlzma.h>
++#include "sqmagic.h"
++
++#undef KeepPreemptive
++#if defined(CONFIG_PREEMPT) && !defined(UnsquashNoPreempt)
++#define KeepPreemptive
++#endif
++
++struct sqlzma {
++#ifdef KeepPreemptive
++	struct mutex mtx;
++#endif
++	unsigned char read_data[SQUASHFS_FILE_MAX_SIZE];
++	struct sqlzma_un un;
++};
++static DEFINE_PER_CPU(struct sqlzma *, sqlzma);
++
++#define dpri(fmt, args...) /* printk("%s:%d: " fmt, __func__, __LINE__, ##args) */
++#define dpri_un(un)	dpri("un{%d, {%d %p}, {%d %p}, {%d %p}}\n", \
++			     (un)->un_lzma, (un)->un_a[0].sz, (un)->un_a[0].buf, \
++			     (un)->un_a[1].sz, (un)->un_a[1].buf, \
++			     (un)->un_a[2].sz, (un)->un_a[2].buf)
++
++static int squashfs_cached_blks;
++#else
+ int squashfs_cached_blks;
++#endif
+ 
+ static struct dentry *squashfs_get_parent(struct dentry *child);
+ static int squashfs_read_inode(struct inode *i, squashfs_inode_t inode);
+@@ -219,7 +246,12 @@ SQSH_EXTERN unsigned int squashfs_read_data(struct super_block *s, char *buffer,
+ 		if (index < 0 || (index + 2) > sblk->bytes_used)
+ 			goto read_failure;
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++		bh[0] = get_block_length(s, (int *)&cur_index, (int *)&offset,
++					 (int *)&c_byte);
++#else
+ 		bh[0] = get_block_length(s, &cur_index, &offset, &c_byte);
++#endif
+ 		if (bh[0] == NULL)
+ 			goto read_failure;
+ 
+@@ -243,12 +275,23 @@ SQSH_EXTERN unsigned int squashfs_read_data(struct super_block *s, char *buffer,
+ 	}
+ 
+ 	if (compressed) {
++#ifdef CONFIG_SQUASHFS_LZMA
++		int zlib_err = Z_STREAM_END;
++		int rest, start;
++		enum {Src, Dst};
++		struct sized_buf sbuf[2];
++		struct sqlzma *percpu;
++#else
+ 		int zlib_err = 0;
++#endif
+ 
+ 		/*
+ 	 	* uncompress block
+ 	 	*/
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++		for (k = 0; k < b; k++) {
++#else
+ 		mutex_lock(&msblk->read_data_mutex);
+ 
+ 		msblk->stream.next_out = buffer;
+@@ -256,9 +299,14 @@ SQSH_EXTERN unsigned int squashfs_read_data(struct super_block *s, char *buffer,
+ 
+ 		for (bytes = 0; k < b; k++) {
+ 			avail_bytes = min(c_byte - bytes, msblk->devblksize - offset);
+-
++#endif
+ 			wait_on_buffer(bh[k]);
+ 			if (!buffer_uptodate(bh[k]))
++#ifdef CONFIG_SQUASHFS_LZMA
++				goto block_release;
++		}
++
++#else
+ 				goto release_mutex;
+ 
+ 			msblk->stream.next_in = bh[k]->b_data + offset;
+@@ -288,10 +336,24 @@ SQSH_EXTERN unsigned int squashfs_read_data(struct super_block *s, char *buffer,
+ 			}
+ 
+ 			bytes += avail_bytes;
++#endif
++#ifdef CONFIG_SQUASHFS_LZMA
++		avail_bytes = 0;
++		for (k = 0; !avail_bytes && k < b; k++) {
++			avail_bytes = msblk->devblksize - offset;
++			if (c_byte < avail_bytes)
++				avail_bytes = c_byte;
++			if (avail_bytes)
++				break;
++#endif
+ 			offset = 0;
+ 			brelse(bh[k]);
+ 		}
+-
++#ifdef CONFIG_SQUASHFS_LZMA
++		bytes = 0;
++		if (!avail_bytes)
++			goto block_release; // nothing to be process
++#else
+ 		if (zlib_err != Z_STREAM_END)
+ 			goto release_mutex;
+ 
+@@ -299,10 +361,52 @@ SQSH_EXTERN unsigned int squashfs_read_data(struct super_block *s, char *buffer,
+ 		if (zlib_err != Z_OK) {
+ 			ERROR("zlib_inflateEnd returned unexpected result 0x%x,"
+ 				" srclength %d\n", zlib_err, srclength);
++#endif
++#ifdef CONFIG_SQUASHFS_LZMA
++		start = k;
++		/* it disables preemption */
++		percpu = get_cpu_var(sqlzma);
++#ifdef KeepPreemptive
++		put_cpu_var(sqlzma);
++		mutex_lock(&percpu->mtx);
++#endif
++
++		for (; k < b; k++) {
++			memcpy(percpu->read_data + bytes, bh[k]->b_data + offset,
++			       avail_bytes);
++			bytes += avail_bytes;
++			offset = 0;
++			brelse(bh[k]);
++			avail_bytes = msblk->devblksize - offset;
++			rest = c_byte - bytes;
++			if (rest < avail_bytes)
++				avail_bytes = rest;
++		}
++
++		sbuf[Src].buf = percpu->read_data;
++		sbuf[Src].sz = bytes;
++		sbuf[Dst].buf = buffer;
++		sbuf[Dst].sz = srclength;
++		dpri_un(&percpu->un);
++		dpri("src %d %p, dst %d %p\n", sbuf[Src].sz, sbuf[Src].buf,
++		     sbuf[Dst].sz, sbuf[Dst].buf);
++		zlib_err = sqlzma_un(&percpu->un, sbuf + Src, sbuf + Dst);
++		bytes = percpu->un.un_reslen;
++
++#ifdef KeepPreemptive
++		mutex_unlock(&percpu->mtx);
++#else
++		put_cpu_var(sqlzma);
++#endif
++		if (unlikely(zlib_err)) {
++			dpri("zlib_err %d\n", zlib_err);
++#endif
+ 			goto release_mutex;
+ 		}
++#ifndef CONFIG_SQUASHFS_LZMA
+ 		bytes = msblk->stream.total_out;
+ 		mutex_unlock(&msblk->read_data_mutex);
++#endif
+ 	} else {
+ 		int i;
+ 
+@@ -330,7 +434,9 @@ SQSH_EXTERN unsigned int squashfs_read_data(struct super_block *s, char *buffer,
+ 	return bytes;
+ 
+ release_mutex:
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	mutex_unlock(&msblk->read_data_mutex);
++#endif
+ 
+ block_release:
+ 	for (; k < b; k++)
+@@ -471,12 +577,22 @@ static int get_fragment_location(struct super_block *s, unsigned int fragment,
+ 		struct squashfs_fragment_entry sfragment_entry;
+ 
+ 		if (!squashfs_get_cached_block(s, &sfragment_entry, start_block, offset,
++#ifdef CONFIG_SQUASHFS_LZMA
++					 sizeof(sfragment_entry), &start_block,
++					       (unsigned int *)&offset))
++#else
+ 					 sizeof(sfragment_entry), &start_block, &offset))
++#endif
+ 			goto out;
+ 		SQUASHFS_SWAP_FRAGMENT_ENTRY(&fragment_entry, &sfragment_entry);
+ 	} else
+ 		if (!squashfs_get_cached_block(s, &fragment_entry, start_block, offset,
++#ifdef CONFIG_SQUASHFS_LZMA
++					 sizeof(fragment_entry), &start_block,
++					       (unsigned int *)&offset))
++#else
+ 					 sizeof(fragment_entry), &start_block, &offset))
++#endif
+ 			goto out;
+ 
+ 	*fragment_start_block = fragment_entry.start_block;
+@@ -1089,12 +1213,19 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ {
+ 	struct squashfs_sb_info *msblk;
+ 	struct squashfs_super_block *sblk;
++#ifdef CONFIG_SQUASHFS_LZMA
++	int i, err;
++#else
+ 	int i;
++#endif
+ 	char b[BDEVNAME_SIZE];
+ 	struct inode *root;
+ 
+ 	TRACE("Entered squashfs_fill_superblock\n");
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++	err = -ENOMEM;
++#endif
+ 	s->s_fs_info = kzalloc(sizeof(struct squashfs_sb_info), GFP_KERNEL);
+ 	if (s->s_fs_info == NULL) {
+ 		ERROR("Failed to allocate superblock\n");
+@@ -1102,17 +1233,21 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 	}
+ 	msblk = s->s_fs_info;
+ 
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	msblk->stream.workspace = vmalloc(zlib_inflate_workspacesize());
+ 	if (msblk->stream.workspace == NULL) {
+ 		ERROR("Failed to allocate zlib workspace\n");
+ 		goto failure;
+ 	}
++#endif
+ 	sblk = &msblk->sblk;
+ 	
+ 	msblk->devblksize = sb_min_blocksize(s, BLOCK_SIZE);
+ 	msblk->devblksize_log2 = ffz(~msblk->devblksize);
+ 
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	mutex_init(&msblk->read_data_mutex);
++#endif
+ 	mutex_init(&msblk->read_page_mutex);
+ 	mutex_init(&msblk->block_cache_mutex);
+ 	mutex_init(&msblk->fragment_mutex);
+@@ -1124,6 +1259,9 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 	/* sblk->bytes_used is checked in squashfs_read_data to ensure reads are not
+  	 * beyond filesystem end.  As we're using squashfs_read_data to read sblk here,
+  	 * first set sblk->bytes_used to a useful value */
++#ifdef CONFIG_SQUASHFS_LZMA
++	err = -EINVAL;
++#endif
+ 	sblk->bytes_used = sizeof(struct squashfs_super_block);
+ 	if (!squashfs_read_data(s, (char *) sblk, SQUASHFS_START,
+ 					sizeof(struct squashfs_super_block) |
+@@ -1133,6 +1271,37 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 	}
+ 
+ 	/* Check it is a SQUASHFS superblock */
++#ifdef CONFIG_SQUASHFS_LZMA
++	s->s_magic = sblk->s_magic;
++	msblk->swap = 0;
++	dpri("magic 0x%x\n", sblk->s_magic);
++	switch (sblk->s_magic) {
++		struct squashfs_super_block ssblk;
++
++	case SQUASHFS_MAGIC_SWAP:
++		/*FALLTHROUGH*/
++	case SQUASHFS_MAGIC_LZMA_SWAP:
++		WARNING("Mounting a different endian SQUASHFS "
++			"filesystem on %s\n", bdevname(s->s_bdev, b));
++
++		SQUASHFS_SWAP_SUPER_BLOCK(&ssblk, sblk);
++		memcpy(sblk, &ssblk, sizeof(struct squashfs_super_block));
++		msblk->swap = 1;
++		/*FALLTHROUGH*/
++	case SQUASHFS_MAGIC:
++	case SQUASHFS_MAGIC_LZMA:
++		break;
++	default:
++		SERROR("Can't find a SQUASHFS superblock on %s\n",
++		       bdevname(s->s_bdev, b));
++		goto failed_mount;
++	}
++
++	{
++		struct sqlzma *p;
++		dpri("block_size %d\n", sblk->block_size);
++		BUG_ON(sblk->block_size > sizeof(p->read_data));
++#else
+ 	if ((s->s_magic = sblk->s_magic) != SQUASHFS_MAGIC) {
+ 		if (sblk->s_magic == SQUASHFS_MAGIC_SWAP) {
+ 			struct squashfs_super_block ssblk;
+@@ -1148,6 +1317,7 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 							bdevname(s->s_bdev, b));
+ 			goto failed_mount;
+ 		}
++#endif
+ 	}
+ 
+ 	/* Check the MAJOR & MINOR versions */
+@@ -1191,6 +1361,9 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 		goto failed_mount;
+ 
+ 	/* Allocate read_page block */
++#ifdef CONFIG_SQUASHFS_LZMA
++	err = -ENOMEM;
++#endif
+ 	msblk->read_page = vmalloc(sblk->block_size);
+ 	if (msblk->read_page == NULL) {
+ 		ERROR("Failed to allocate read_page block\n");
+@@ -1206,19 +1379,42 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 	}
+ 	msblk->guid = msblk->uid + sblk->no_uids;
+    
++#ifdef CONFIG_SQUASHFS_LZMA
++	dpri("swap %d\n", msblk->swap);
++	err = -EINVAL;
++#endif
+ 	if (msblk->swap) {
++#ifdef CONFIG_SQUASHFS_LZMA
++		unsigned int *suid;
++
++		err = -ENOMEM;
++		suid = kmalloc(sizeof(*suid) * (sblk->no_uids + sblk->no_guids),
++			       GFP_KERNEL);
++		if (unlikely(!suid))
++			goto failed_mount;
++
++		err = -EINVAL;
++		if (!squashfs_read_data(s, (char *)suid, sblk->uid_start,
++#else
+ 		unsigned int suid[sblk->no_uids + sblk->no_guids];
+ 
+ 		if (!squashfs_read_data(s, (char *) &suid, sblk->uid_start,
++#endif
+ 					((sblk->no_uids + sblk->no_guids) *
+ 					 sizeof(unsigned int)) |
+ 					SQUASHFS_COMPRESSED_BIT_BLOCK, NULL, (sblk->no_uids + sblk->no_guids) * sizeof(unsigned int))) {
+ 			ERROR("unable to read uid/gid table\n");
++#ifdef CONFIG_SQUASHFS_LZMA
++			kfree(suid);
++#endif
+ 			goto failed_mount;
+ 		}
+ 
+ 		SQUASHFS_SWAP_DATA(msblk->uid, suid, (sblk->no_uids +
+ 			sblk->no_guids), (sizeof(unsigned int) * 8));
++#ifdef CONFIG_SQUASHFS_LZMA
++		kfree(suid);
++#endif
+ 	} else
+ 		if (!squashfs_read_data(s, (char *) msblk->uid, sblk->uid_start,
+ 					((sblk->no_uids + sblk->no_guids) *
+@@ -1232,6 +1428,9 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 	if (sblk->s_major == 1 && squashfs_1_0_supported(msblk))
+ 		goto allocate_root;
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++	err = -ENOMEM;
++#endif
+ 	msblk->fragment = kzalloc(sizeof(struct squashfs_fragment_cache) *
+ 				SQUASHFS_CACHED_FRAGMENTS, GFP_KERNEL);
+ 	if (msblk->fragment == NULL) {
+@@ -1261,9 +1460,16 @@ static int squashfs_fill_super(struct super_block *s, void *data, int silent)
+ 	s->s_export_op = &squashfs_export_ops;
+ 
+ allocate_root:
++#ifdef CONFIG_SQUASHFS_LZMA
++	dpri("alloate_root\n");
++#endif
+ 	root = new_inode(s);
+-	if ((msblk->read_inode)(root, sblk->root_inode) == 0)
++	if ((msblk->read_inode)(root, sblk->root_inode) == 0) {
++#ifdef CONFIG_SQUASHFS_LZMA
++		iput(root);
++#endif
+ 		goto failed_mount;
++	}
+ 	insert_inode_hash(root);
+ 
+ 	s->s_root = d_alloc_root(root);
+@@ -1284,13 +1490,20 @@ failed_mount:
+ 	vfree(msblk->read_page);
+ 	kfree(msblk->block_cache);
+ 	kfree(msblk->fragment_index_2);
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	vfree(msblk->stream.workspace);
++#endif
+ 	kfree(s->s_fs_info);
+ 	s->s_fs_info = NULL;
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	return -EINVAL;
+ 
+ failure:
+ 	return -ENOMEM;
++#else
++ failure:
++	return err;
++#endif
+ }
+ 
+ 
+@@ -1301,7 +1514,11 @@ static int squashfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ 
+ 	TRACE("Entered squashfs_statfs\n");
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++	buf->f_type = sblk->s_magic;
++#else
+ 	buf->f_type = SQUASHFS_MAGIC;
++#endif
+ 	buf->f_bsize = sblk->block_size;
+ 	buf->f_blocks = ((sblk->bytes_used - 1) >> sblk->block_log) + 1;
+ 	buf->f_bfree = buf->f_bavail = 0;
+@@ -1328,7 +1545,12 @@ static int squashfs_symlink_readpage(struct file *file, struct page *page)
+ 
+ 	for (length = 0; length < index; length += bytes) {
+ 		bytes = squashfs_get_cached_block(inode->i_sb, NULL, block,
++#ifdef CONFIG_SQUASHFS_LZMA
++				offset, PAGE_CACHE_SIZE, &block,
++						  (unsigned int *)&offset);
++#else
+ 				offset, PAGE_CACHE_SIZE, &block, &offset);
++#endif
+ 		if (bytes == 0) {
+ 			ERROR("Unable to read symbolic link [%llx:%x]\n", block, offset);
+ 			goto skip_read;
+@@ -1344,7 +1566,11 @@ static int squashfs_symlink_readpage(struct file *file, struct page *page)
+ 	avail_bytes = min_t(int, i_size_read(inode) - length, PAGE_CACHE_SIZE);
+ 
+ 	bytes = squashfs_get_cached_block(inode->i_sb, pageaddr, block, offset,
++#ifdef CONFIG_SQUASHFS_LZMA
++		avail_bytes, &block, (unsigned int *)&offset);
++#else
+ 		avail_bytes, &block, &offset);
++#endif
+ 	if (bytes == 0)
+ 		ERROR("Unable to read symbolic link [%llx:%x]\n", block, offset);
+ 
+@@ -1359,7 +1585,11 @@ skip_read:
+ }
+ 
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++static struct meta_index *locate_meta_index(struct inode *inode, int index, int offset)
++#else
+ struct meta_index *locate_meta_index(struct inode *inode, int index, int offset)
++#endif
+ {
+ 	struct meta_index *meta = NULL;
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+@@ -1394,7 +1624,7 @@ not_allocated:
+ }
+ 
+ 
+-struct meta_index *empty_meta_index(struct inode *inode, int offset, int skip)
++static struct meta_index *empty_meta_index(struct inode *inode, int offset, int skip)
+ {
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+ 	struct meta_index *meta = NULL;
+@@ -1447,8 +1677,11 @@ failed:
+ 	return meta;
+ }
+ 
+-
++#ifdef CONFIG_SQUASHFS_LZMA
++static void release_meta_index(struct inode *inode, struct meta_index *meta)
++#else
+ void release_meta_index(struct inode *inode, struct meta_index *meta)
++#endif
+ {
+ 	meta->locked = 0;
+ 	smp_mb();
+@@ -1463,18 +1696,38 @@ static int read_block_index(struct super_block *s, int blocks, char *block_list,
+ 	int block = 0;
+ 	
+ 	if (msblk->swap) {
++#ifdef CONFIG_SQUASHFS_LZMA
++		char *sblock_list;
++
++		sblock_list = kmalloc(blocks << 2, GFP_KERNEL);
++		if (unlikely(!sblock_list))
++			goto failure;
++#else
+ 		char sblock_list[blocks << 2];
++#endif
+ 
+ 		if (!squashfs_get_cached_block(s, sblock_list, *start_block,
+-				*offset, blocks << 2, start_block, offset)) {
++#ifdef CONFIG_SQUASHFS_LZMA
++				*offset, blocks << 2, start_block, (unsigned int *)offset)) {
++#else
++				*offset, blocks << 2, start_block, (unsigned int *)offset)) {
++#endif
+ 			ERROR("Fail reading block list [%llx:%x]\n", *start_block, *offset);
++#ifdef CONFIG_SQUASHFS_LZMA
++			kfree(sblock_list);
++#endif
+ 			goto failure;
+ 		}
+ 		SQUASHFS_SWAP_INTS(((unsigned int *)block_list),
+ 				((unsigned int *)sblock_list), blocks);
++		kfree(sblock_list);
+ 	} else {
+ 		if (!squashfs_get_cached_block(s, block_list, *start_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++				*offset, blocks << 2, start_block, (unsigned int *)offset)) {
++#else
+ 				*offset, blocks << 2, start_block, offset)) {
++#endif
+ 			ERROR("Fail reading block list [%llx:%x]\n", *start_block, *offset);
+ 			goto failure;
+ 		}
+@@ -1890,7 +2143,12 @@ static int squashfs_readdir(struct file *file, void *dirent, filldir_t filldir)
+ 		file->f_pos += size;
+ 	}
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++	length = get_dir_index_using_offset(i->i_sb, &next_block,
++					    (unsigned int *)&next_offset,
++#else
+ 	length = get_dir_index_using_offset(i->i_sb, &next_block, &next_offset,
++#endif
+ 				SQUASHFS_I(i)->u.s2.directory_index_start,
+ 				SQUASHFS_I(i)->u.s2.directory_index_offset,
+ 				SQUASHFS_I(i)->u.s2.directory_index_count, file->f_pos);
+@@ -1901,14 +2159,24 @@ static int squashfs_readdir(struct file *file, void *dirent, filldir_t filldir)
+ 			struct squashfs_dir_header sdirh;
+ 			
+ 			if (!squashfs_get_cached_block(i->i_sb, &sdirh, next_block,
+-					 next_offset, sizeof(sdirh), &next_block, &next_offset))
++#ifdef CONFIG_SQUASHFS_LZMA
++					 next_offset, sizeof(sdirh), &next_block,
++						       (unsigned int *)&next_offset))
++#else
++					next_offset, sizeof(sdirh), &next_block, &next_offset))
++#endif
+ 				goto failed_read;
+ 
+ 			length += sizeof(sdirh);
+ 			SQUASHFS_SWAP_DIR_HEADER(&dirh, &sdirh);
+ 		} else {
+ 			if (!squashfs_get_cached_block(i->i_sb, &dirh, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++					next_offset, sizeof(dirh), &next_block,
++						       (unsigned int *)&next_offset))
++#else
+ 					next_offset, sizeof(dirh), &next_block, &next_offset))
++#endif
+ 				goto failed_read;
+ 
+ 			length += sizeof(dirh);
+@@ -1919,21 +2187,36 @@ static int squashfs_readdir(struct file *file, void *dirent, filldir_t filldir)
+ 			if (msblk->swap) {
+ 				struct squashfs_dir_entry sdire;
+ 				if (!squashfs_get_cached_block(i->i_sb, &sdire, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++						next_offset, sizeof(sdire), &next_block,
++							       (unsigned int *)&next_offset))
++#else
+ 						next_offset, sizeof(sdire), &next_block, &next_offset))
++#endif
+ 					goto failed_read;
+ 				
+ 				length += sizeof(sdire);
+ 				SQUASHFS_SWAP_DIR_ENTRY(dire, &sdire);
+ 			} else {
+ 				if (!squashfs_get_cached_block(i->i_sb, dire, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++						next_offset, sizeof(*dire), &next_block,
++							       (unsigned int *)&next_offset))
++#else
+ 						next_offset, sizeof(*dire), &next_block, &next_offset))
++#endif
+ 					goto failed_read;
+ 
+ 				length += sizeof(*dire);
+ 			}
+ 
+ 			if (!squashfs_get_cached_block(i->i_sb, dire->name, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++						next_offset, dire->size + 1, &next_block,
++						       (unsigned int *)&next_offset))
++#else
+ 						next_offset, dire->size + 1, &next_block, &next_offset))
++#endif
+ 				goto failed_read;
+ 
+ 			length += dire->size + 1;
+@@ -1997,7 +2280,11 @@ static struct dentry *squashfs_lookup(struct inode *i, struct dentry *dentry,
+ 	if (len > SQUASHFS_NAME_LEN)
+ 		goto exit_lookup;
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++	length = get_dir_index_using_name(i->i_sb, &next_block, (unsigned int *)&next_offset,
++#else
+ 	length = get_dir_index_using_name(i->i_sb, &next_block, &next_offset,
++#endif
+ 				SQUASHFS_I(i)->u.s2.directory_index_start,
+ 				SQUASHFS_I(i)->u.s2.directory_index_offset,
+ 				SQUASHFS_I(i)->u.s2.directory_index_count, name, len);
+@@ -2007,14 +2294,24 @@ static struct dentry *squashfs_lookup(struct inode *i, struct dentry *dentry,
+ 		if (msblk->swap) {
+ 			struct squashfs_dir_header sdirh;
+ 			if (!squashfs_get_cached_block(i->i_sb, &sdirh, next_block,
+-					 next_offset, sizeof(sdirh), &next_block, &next_offset))
++#ifdef CONFIG_SQUASHFS_LZMA
++					 next_offset, sizeof(sdirh), &next_block,
++						       (unsigned int *)&next_offset))
++#else
++					next_offset, sizeof(sdirh), &next_block, &next_offset))
++#endif
+ 				goto failed_read;
+ 
+ 			length += sizeof(sdirh);
+ 			SQUASHFS_SWAP_DIR_HEADER(&dirh, &sdirh);
+ 		} else {
+ 			if (!squashfs_get_cached_block(i->i_sb, &dirh, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++					next_offset, sizeof(dirh), &next_block,
++						       (unsigned int *)&next_offset))
++#else
+ 					next_offset, sizeof(dirh), &next_block, &next_offset))
++#endif
+ 				goto failed_read;
+ 
+ 			length += sizeof(dirh);
+@@ -2025,21 +2322,36 @@ static struct dentry *squashfs_lookup(struct inode *i, struct dentry *dentry,
+ 			if (msblk->swap) {
+ 				struct squashfs_dir_entry sdire;
+ 				if (!squashfs_get_cached_block(i->i_sb, &sdire, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++						next_offset, sizeof(sdire), &next_block,
++							       (unsigned int *)&next_offset))
++#else
+ 						next_offset, sizeof(sdire), &next_block, &next_offset))
++#endif
+ 					goto failed_read;
+ 				
+ 				length += sizeof(sdire);
+ 				SQUASHFS_SWAP_DIR_ENTRY(dire, &sdire);
+ 			} else {
+ 				if (!squashfs_get_cached_block(i->i_sb, dire, next_block,
++#ifdef CONFIG_SQUASHFS_LZMA
++						next_offset, sizeof(*dire), &next_block,
++							       (unsigned int *)&next_offset))
++#else
+ 						next_offset, sizeof(*dire), &next_block, &next_offset))
++#endif
+ 					goto failed_read;
+ 
+ 				length += sizeof(*dire);
+ 			}
+ 
+ 			if (!squashfs_get_cached_block(i->i_sb, dire->name, next_block,
+-					next_offset, dire->size + 1, &next_block, &next_offset))
++#ifdef CONFIG_SQUASHFS_LZMA
++					next_offset, dire->size + 1, &next_block,
++						       (unsigned int *)&next_offset))
++#else
++					 next_offset, dire->size + 1, &next_block, &next_offset))
++#endif
+ 				goto failed_read;
+ 
+ 			length += dire->size + 1;
+@@ -2103,7 +2415,9 @@ static void squashfs_put_super(struct super_block *s)
+ 		kfree(sbi->fragment_index);
+ 		kfree(sbi->fragment_index_2);
+ 		kfree(sbi->meta_index);
++#ifndef CONFIG_SQUASHFS_LZMA
+ 		vfree(sbi->stream.workspace);
++#endif
+ 		kfree(s->s_fs_info);
+ 		s->s_fs_info = NULL;
+ 	}
+@@ -2117,19 +2431,74 @@ static int squashfs_get_sb(struct file_system_type *fs_type, int flags,
+ 				mnt);
+ }
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++static void free_sqlzma(void)
++{
++	int cpu;
++	struct sqlzma *p;
++
++	for_each_online_cpu(cpu) {
++		p = per_cpu(sqlzma, cpu);
++		if (p) {
++#ifdef KeepPreemptive
++			mutex_destroy(&p->mtx);
++#endif
++			sqlzma_fin(&p->un);
++			kfree(p);
++		}
++	}
++}
++#endif
+ 
+ static int __init init_squashfs_fs(void)
+ {
++#ifdef CONFIG_SQUASHFS_LZMA
++	struct sqlzma *p;
++	int cpu;
++#endif
+ 	int err = init_inodecache();
+ 	if (err)
+ 		goto out;
+ 
++#ifdef CONFIG_SQUASHFS_LZMA
++	for_each_online_cpu(cpu) {
++		dpri("%d: %p\n", cpu, per_cpu(sqlzma, cpu));
++		err = -ENOMEM;
++		p = kmalloc(sizeof(struct sqlzma), GFP_KERNEL);
++		if (p) {
++#ifdef KeepPreemptive
++			mutex_init(&p->mtx);
++#endif
++			err = sqlzma_init(&p->un, 1, 0);
++			if (unlikely(err)) {
++				ERROR("Failed to intialize uncompress workspace\n");
++				break;
++			}
++			per_cpu(sqlzma, cpu) = p;
++			err = 0;
++		} else
++			break;
++	}
++	if (unlikely(err)) {
++		free_sqlzma();
++		goto out;
++	}
++
++#endif
+ 	printk(KERN_INFO "squashfs: version 3.3 (2007/10/31) "
+-		"Phillip Lougher\n");
++		"Phillip Lougher\n"
++#ifdef CONFIG_SQUASHFS_LZMA
++		"squashfs: LZMA suppport for slax.org by jro\n"
++#endif
++		);
+ 
+ 	err = register_filesystem(&squashfs_fs_type);
+-	if (err)
++	if (err) {
++#ifdef CONFIG_SQUASHFS_LZMA
++		free_sqlzma();
++#endif
+ 		destroy_inodecache();
++	}
+ 
+ out:
+ 	return err;
+@@ -2139,6 +2508,9 @@ out:
+ static void __exit exit_squashfs_fs(void)
+ {
+ 	unregister_filesystem(&squashfs_fs_type);
++#ifdef CONFIG_SQUASHFS_LZMA
++	free_sqlzma();
++#endif
+ 	destroy_inodecache();
+ }
+ 
+@@ -2187,6 +2559,11 @@ static void destroy_inodecache(void)
+ 
+ module_init(init_squashfs_fs);
+ module_exit(exit_squashfs_fs);
++#ifdef CONFIG_SQUASHFS_LZMA
++MODULE_DESCRIPTION("squashfs 3.2-r2-CVS, a compressed read-only filesystem, and LZMA suppport for slax.org");
++MODULE_AUTHOR("Phillip Lougher <phillip@lougher.demon.co.uk>, and LZMA suppport for slax.org by jro");
++#else
+ MODULE_DESCRIPTION("squashfs 3.2-r2-CVS, a compressed read-only filesystem");
+ MODULE_AUTHOR("Phillip Lougher <phillip@lougher.demon.co.uk>");
++#endif
+ MODULE_LICENSE("GPL");
+diff --git a/fs/squashfs/module.c b/fs/squashfs/module.c
+new file mode 100644
+index 0000000..dff37c0
+--- /dev/null
++++ b/fs/squashfs/module.c
+@@ -0,0 +1,36 @@
++
++/*
++ * Copyright (C) 2006-2007 Junjiro Okajima
++ * Copyright (C) 2006-2007 Tomas Matejicek, slax.org
++ *
++ * LICENSE follows the described one in lzma.txt.
++ */
++
++/* $Id: module.c,v 1.1 2007/11/05 05:43:36 jro Exp $ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++
++#include "LzmaDecode.c"
++
++EXPORT_SYMBOL(LzmaDecodeProperties);
++EXPORT_SYMBOL(LzmaDecode);
++
++#if 0
++static int __init unlzma_init(void)
++{
++	return 0;
++}
++
++static void __exit unlzma_exit(void)
++{
++}
++
++module_init(unlzma_init);
++module_exit(unlzma_exit);
++#endif
++
++MODULE_LICENSE("GPL");
++MODULE_VERSION("$Id: module.c,v 1.1 2007/11/05 05:43:36 jro Exp $");
++MODULE_DESCRIPTION("LZMA uncompress. "
++		   "A tiny wrapper for LzmaDecode.c in LZMA SDK from www.7-zip.org.");
+diff --git a/fs/squashfs/sqmagic.h b/fs/squashfs/sqmagic.h
+new file mode 100644
+index 0000000..e50594c
+--- /dev/null
++++ b/fs/squashfs/sqmagic.h
+@@ -0,0 +1,17 @@
++/*
++ * Copyright (C) 2006 Junjiro Okajima
++ * Copyright (C) 2006 Tomas Matejicek, slax.org
++ *
++ * LICENSE must follow the one in squashfs.
++ */
++
++/* $Id: sqmagic.h,v 1.2 2006/11/27 03:54:58 jro Exp $ */
++
++#ifndef __sqmagic_h__
++#define __sqmagic_h__
++
++/* see SQUASHFS_MAGIC in squashfs_fs.h */
++#define SQUASHFS_MAGIC_LZMA		0x71736873
++#define SQUASHFS_MAGIC_LZMA_SWAP	0x73687371
++
++#endif
+diff --git a/fs/squashfs/uncomp.c b/fs/squashfs/uncomp.c
+new file mode 100644
+index 0000000..242d7f9
+--- /dev/null
++++ b/fs/squashfs/uncomp.c
+@@ -0,0 +1,221 @@
++/*
++ * Copyright (C) 2006, 2007 Junjiro Okajima
++ * Copyright (C) 2006, 2007 Tomas Matejicek, slax.org
++ *
++ * LICENSE follows the described one in lzma.txt.
++ */
++
++/* $Id: uncomp.c,v 1.1 2007/11/05 05:43:36 jro Exp $ */
++
++/* extract some parts from lzma443/C/7zip/Compress/LZMA_C/LzmaTest.c */
++
++#ifndef __KERNEL__
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
++#include <assert.h>
++#include <pthread.h>
++#define unlikely(x)		__builtin_expect(!!(x), 0)
++#define BUG_ON(x)		assert(!(x))
++/* sqlzma buffers are always larger than a page. true? */
++#define kmalloc(sz,gfp)		malloc(sz)
++#define kfree(p)		free(p)
++#define zlib_inflate(s, f)	inflate(s, f)
++#define zlib_inflateInit(s)	inflateInit(s)
++#define zlib_inflateReset(s)	inflateReset(s)
++#define zlib_inflateEnd(s)	inflateEnd(s)
++#else
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/vmalloc.h>
++#ifndef WARN_ON_ONCE
++#define WARN_ON_ONCE(b)	WARN_ON(b)
++#endif
++#endif /* __KERNEL__ */
++
++#include <linux/sqlzma.h>
++#include "LzmaDecode.h"
++
++static int LzmaUncompress(struct sqlzma_un *un)
++{
++	int err, i, ret;
++	SizeT outSize, inProcessed, outProcessed, srclen;
++	/* it's about 24-80 bytes structure, if int is 32-bit */
++	CLzmaDecoderState state;
++	unsigned char *dst, *src, a[8];
++	struct sized_buf *sbuf;
++
++	/* Decode LZMA properties and allocate memory */
++	err = -EINVAL;
++	src = (void *)un->un_cmbuf;
++	ret = LzmaDecodeProperties(&state.Properties, src, LZMA_PROPERTIES_SIZE);
++	src += LZMA_PROPERTIES_SIZE;
++	if (unlikely(ret != LZMA_RESULT_OK))
++		goto out;
++	i = LzmaGetNumProbs(&state.Properties);
++	if (unlikely(i <= 0))
++		i = 1;
++	i *= sizeof(CProb);
++	sbuf = un->un_a + SQUN_PROB;
++	if (unlikely(sbuf->sz < i)) {
++		if (sbuf->buf && sbuf->buf != un->un_prob)
++			kfree(sbuf->buf);
++#ifdef __KERNEL__
++		printk("%s:%d: %d --> %d\n", __func__, __LINE__, sbuf->sz, i);
++#else
++		printf("%d --> %d\n", sbuf->sz, i);
++#endif
++		err = -ENOMEM;
++		sbuf->sz = 0;
++		sbuf->buf = kmalloc(i, GFP_ATOMIC);
++		if (unlikely(!sbuf->buf))
++			goto out;
++		sbuf->sz = i;
++	}
++	state.Probs = (void*)sbuf->buf;
++
++	/* Read uncompressed size */
++	memcpy(a, src, sizeof(a));
++	src += sizeof(a);
++	outSize = a[0] | (a[1] << 8) | (a[2] << 16) | (a[3] << 24);
++
++	err = -EINVAL;
++	dst = un->un_resbuf;
++	if (unlikely(!dst || outSize > un->un_reslen))
++		goto out;
++	un->un_reslen = outSize;
++	srclen = un->un_cmlen - (src - un->un_cmbuf);
++
++	/* Decompress */
++	err = LzmaDecode(&state, src, srclen, &inProcessed, dst, outSize,
++			 &outProcessed);
++	if (err)
++		err = -EINVAL;
++
++ out:
++#ifndef __KERNEL__
++	if (err)
++		fprintf(stderr, "err %d\n", err);
++#endif
++	return err;
++}
++
++int sqlzma_un(struct sqlzma_un *un, struct sized_buf *src,
++	      struct sized_buf *dst)
++{
++	int err, by_lzma = 0;
++	if (un->un_lzma && is_lzma(*src->buf)) {
++		by_lzma = 1;
++		un->un_cmbuf = src->buf;
++		un->un_cmlen = src->sz;
++		un->un_resbuf = dst->buf;
++		un->un_reslen = dst->sz;
++
++		/* this library is thread-safe */
++		err = LzmaUncompress(un);
++		goto out;
++	}
++
++	err = zlib_inflateReset(&un->un_stream);
++	if (unlikely(err != Z_OK))
++		goto out;
++	un->un_stream.next_in = src->buf;
++	un->un_stream.avail_in = src->sz;
++	un->un_stream.next_out = dst->buf;
++	un->un_stream.avail_out = dst->sz;
++	err = zlib_inflate(&un->un_stream, Z_FINISH);
++	if (err == Z_STREAM_END)
++		err = 0;
++
++ out:
++	if (err) {
++#ifdef __KERNEL__
++		WARN_ON_ONCE(1);
++#else
++		char a[64] = "ZLIB ";
++		if (by_lzma) {
++			strcpy(a, "LZMA ");
++#ifdef _REENTRANT
++			strerror_r(err, a + 5, sizeof(a) - 5);
++#else
++			strncat(a, strerror(err), sizeof(a) - 5);
++#endif
++		} else
++			strncat(a, zError(err), sizeof(a) - 5);
++		fprintf(stderr, "%s: %.*s\n", __func__, sizeof(a), a);
++#endif
++	}
++	return err;
++}
++
++int sqlzma_init(struct sqlzma_un *un, int do_lzma, unsigned int res_sz)
++{
++	int err;
++
++	err = -ENOMEM;
++	un->un_lzma = do_lzma;
++	memset(un->un_a, 0, sizeof(un->un_a));
++	un->un_a[SQUN_PROB].buf = un->un_prob;
++	un->un_a[SQUN_PROB].sz = sizeof(un->un_prob);
++	if (res_sz) {
++		un->un_a[SQUN_RESULT].buf = kmalloc(res_sz, GFP_KERNEL);
++		if (unlikely(!un->un_a[SQUN_RESULT].buf))
++			return err;
++		un->un_a[SQUN_RESULT].sz = res_sz;
++	}
++
++	un->un_stream.next_in = NULL;
++	un->un_stream.avail_in = 0;
++#ifdef __KERNEL__
++	un->un_stream.workspace = kmalloc(zlib_inflate_workspacesize(), GFP_KERNEL);
++	if (unlikely(!un->un_stream.workspace))
++		return err;
++#else
++	un->un_stream.opaque = NULL;
++	un->un_stream.zalloc = Z_NULL;
++	un->un_stream.zfree = Z_NULL;
++#endif
++	err = zlib_inflateInit(&un->un_stream);
++	if (unlikely(err == Z_MEM_ERROR))
++		return -ENOMEM;
++	BUG_ON(err);
++	return err;
++}
++
++void sqlzma_fin(struct sqlzma_un *un)
++{
++	int i;
++	for (i = 0; i < SQUN_LAST; i++)
++		if (un->un_a[i].buf && un->un_a[i].buf != un->un_prob)
++			kfree(un->un_a[i].buf);
++	BUG_ON(zlib_inflateEnd(&un->un_stream) != Z_OK);
++}
++
++#ifdef __KERNEL__
++EXPORT_SYMBOL(sqlzma_un);
++EXPORT_SYMBOL(sqlzma_init);
++EXPORT_SYMBOL(sqlzma_fin);
++
++#if 0
++static int __init sqlzma_init(void)
++{
++	return 0;
++}
++
++static void __exit sqlzma_exit(void)
++{
++}
++
++module_init(sqlzma_init);
++module_exit(sqlzma_exit);
++#endif
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Junjiro Okajima <sfjro at users dot sf dot net>");
++MODULE_VERSION("$Id: uncomp.c,v 1.1 2007/11/05 05:43:36 jro Exp $");
++MODULE_DESCRIPTION("LZMA uncompress for squashfs. "
++		   "Some functions for squashfs to support LZMA and "
++		   "a tiny wrapper for LzmaDecode.c in LZMA SDK from www.7-zip.org.");
++#endif
+diff --git a/include/linux/sqlzma.h b/include/linux/sqlzma.h
+new file mode 100644
+index 0000000..2df5042
+--- /dev/null
++++ b/include/linux/sqlzma.h
+@@ -0,0 +1,83 @@
++/*
++ * Copyright (C) 2006 Junjiro Okajima
++ * Copyright (C) 2006 Tomas Matejicek, slax.org
++ *
++ * LICENSE follows the described one in lzma.
++ */
++
++/* $Id: sqlzma.h,v 1.15 2007/11/09 14:42:12 jro Exp $ */
++
++#ifndef __sqlzma_h__
++#define __sqlzma_h__
++
++#ifndef __KERNEL__
++#include <stdlib.h>
++#include <string.h>
++#include <zlib.h>
++#ifdef _REENTRANT
++#include <pthread.h>
++#endif
++#else
++#include <linux/zlib.h>
++#endif
++#define _7ZIP_BYTE_DEFINED
++
++/*
++ * detect the compression method automatically by the first byte of compressed
++ * data.
++ * according to rfc1950, the first byte of zlib compression must be 0x?8.
++ */
++#define is_lzma(c)	(c == 0x5d)
++
++/* ---------------------------------------------------------------------- */
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#ifndef __KERNEL__
++/* for mksquashfs only */
++struct sqlzma_opts {
++	unsigned int	try_lzma:1;
++	unsigned int 	dicsize;
++};
++int sqlzma_cm(struct sqlzma_opts *opts, z_stream *stream, Bytef *next_in, uInt
++	      avail_in, Bytef *next_out, uInt avail_out);
++#endif
++
++/* ---------------------------------------------------------------------- */
++/*
++ * Three patterns for sqlzma uncompression. very dirty code.
++ * - kernel space (squashfs kernel module)
++ * - user space with pthread (mksquashfs)
++ * - user space without pthread (unsquashfs)
++ */
++
++struct sized_buf {
++	unsigned int	sz;
++	unsigned char	*buf;
++};
++
++enum {SQUN_PROB, SQUN_RESULT, SQUN_LAST};
++struct sqlzma_un {
++	int			un_lzma;
++	struct sized_buf	un_a[SQUN_LAST];
++	unsigned char           un_prob[31960]; /* unlzma 64KB - 1MB */
++	z_stream		un_stream;
++#define un_cmbuf	un_stream.next_in
++#define un_cmlen	un_stream.avail_in
++#define un_resbuf	un_stream.next_out
++#define un_resroom	un_stream.avail_out
++#define un_reslen	un_stream.total_out
++};
++
++int sqlzma_init(struct sqlzma_un *un, int do_lzma, unsigned int res_sz);
++int sqlzma_un(struct sqlzma_un *un, struct sized_buf *src, struct sized_buf *dst);
++void sqlzma_fin(struct sqlzma_un *un);
++
++/* ---------------------------------------------------------------------- */
++
++#ifdef __cplusplus
++};
++#endif
++#endif
+diff --git a/include/linux/squashfs_fs.h b/include/linux/squashfs_fs.h
+index e60308e..6af09a0 100644
+--- a/include/linux/squashfs_fs.h
++++ b/include/linux/squashfs_fs.h
+@@ -341,7 +341,11 @@ struct squashfs_dir_entry {
+ 	unsigned int		offset:13;
+ 	unsigned int		type:3;
+ 	unsigned int		size:8;
++#ifdef CONFIG_SQUASHFS_LZMA
++	unsigned int		inode_number:16;
++#else
+ 	int			inode_number:16;
++#endif
+ 	char			name[0];
+ } __attribute__ ((packed));
+ 
+diff --git a/include/linux/squashfs_fs_sb.h b/include/linux/squashfs_fs_sb.h
+index e5fa802..e1f8877 100644
+--- a/include/linux/squashfs_fs_sb.h
++++ b/include/linux/squashfs_fs_sb.h
+@@ -24,6 +24,9 @@
+  */
+ 
+ #include <linux/squashfs_fs.h>
++#ifdef CONFIG_SQUASHFS_LZMA
++#include "sqlzma.h"
++#endif
+ 
+ struct squashfs_cache {
+ 	long long	block;
+@@ -54,7 +57,9 @@ struct squashfs_sb_info {
+ 	long long		*fragment_index;
+ 	unsigned int		*fragment_index_2;
+ 	char			*read_page;
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	struct mutex		read_data_mutex;
++#endif
+ 	struct mutex		read_page_mutex;
+ 	struct mutex		block_cache_mutex;
+ 	struct mutex		fragment_mutex;
+@@ -62,7 +67,9 @@ struct squashfs_sb_info {
+ 	wait_queue_head_t	waitq;
+ 	wait_queue_head_t	fragment_wait_queue;
+ 	struct meta_index	*meta_index;
++#ifndef CONFIG_SQUASHFS_LZMA
+ 	z_stream		stream;
++#endif
+ 	long long		*inode_lookup_table;
+ 	int			unused_cache_blks;
+ 	int			unused_frag_blks;

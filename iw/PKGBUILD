@@ -1,0 +1,15 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+pkgname=iw
+pkgver=1
+pkgrel=1
+pkgdesc="Utility for mac80211 interface management features"
+url="http://aircrack-ng.org"
+arch=('i686')
+license="GPL"
+depends=('libnl')
+source=(http://dl.aircrack-ng.org/$pkgname.tar.bz2)
+md5sums=('15a476f5ae002b25e301a84260b07814')
+build() {
+  make || return 1
+  make install DESTDIR=$startdir/pkg || return 1
+}

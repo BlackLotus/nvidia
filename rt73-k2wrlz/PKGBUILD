@@ -1,0 +1,24 @@
+pkgname=rt73-k2wrlz
+pkgver=3.0.1
+pkgdesc="RaLink RT73 USB Enhanced Driver"
+pkgrel=1
+_kernver=2.6.26
+_fullkernver=2.6.26.3
+_kernpath=$(pwd)/../kernel26slax/src/linux-$_kernver
+arch=('i686')
+license=("GPL2")
+url="http://homepages.tu-darmstadt.de/~p_larbig/wlan/"
+install=rt73-k2wrlz.install
+source=(http://homepages.tu-darmstadt.de/~p_larbig/wlan/$pkgname-$pkgver.tar.bz2)
+
+build() {
+	cd $startdir/src/$pkgname-$pkgver/Module/
+	make KERNEL_SOURCES=$_kernpath ||return 1
+	mkdir -p $startdir/pkg/lib/modules/${_fullkernver}eee/extra/
+	install -D rt73.ko $startdir/pkg/lib/modules/${_fullkernver}eee/extra/
+	mkdir -p $startdir/pkg/lib/firmware
+	install rt73.bin $startdir/pkg/lib/firmware/
+}
+
+md5sums=('a849757dbdac10a2d9c9b5ff9ddcc189')
+
