@@ -1,0 +1,16 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+pkgname=samdump2
+pkgver=2.0
+pkgrel=1
+pkgdesc="Dump password hashes from a Windows NT/2k/XP installation"
+url="ophcrack.sourceforge.net"
+arch=('i686')
+license="GPL"
+source=(http://downloads.sourceforge.net/ophcrack/samdump2-2.0.tar.bz2)
+md5sums=('1a47b1154fddbde1f5a6b962bb59243b')
+build() {
+  cd $pkgname-$pkgver
+  sed -i 's/infos//' Makefile
+  make || return 1
+  make install DESTDIR=$startdir/pkg || return 1
+}
