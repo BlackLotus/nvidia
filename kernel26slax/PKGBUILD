@@ -3,9 +3,8 @@
 pkgname=kernel26slax
 _basekernel=2.6.26
 pkgver=2.6.26.3
-pkgrel=1
-_patchname="patch-${pkgver}-${pkgrel}-ARCH"
-pkgdesc="Linux kernel based on slax config. Used in arch-live."
+pkgrel=2
+pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
 license=('GPL2')
 groups=('base')
@@ -23,29 +22,21 @@ provides=('kernel26')
 install=$pkgname.install
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://kernel.org/pub/linux/kernel/v2.6/patch-$pkgver.bz2
-	#makefile-fix.patch
-        #ftp://ftp.archlinux.org/other/kernel26/${_patchname}.bz2
-        # the main kernel config files
-        config #config.x86_64
-        # standard config files for mkinitcpio ramdisk
-        $pkgname.preset
-	#sqaushfs 3.3 for 2.6.25
+        config
 	squashfs3.3-patch
 	squashfs-2.6.25.patch
-	#add sqlzma option
 	sqlzma3.3-optional.patch
-	# adding patches to support aufs
 	aufs-patches.patch
 	http://patches.aircrack-ng.org/mac80211_2.6.26_frag.patch
 	http://patches.aircrack-ng.org/ath5k-frequency-chaos_2.6.26.2.patch
 	http://patches.aircrack-ng.org/ieee80211_inject-2.6.22.patch
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
+	http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/reiser4-for-2.6.25.patch.bz2
 	openlog.patch
 )
 md5sums=('5169d01c405bc3f866c59338e217968c'
          '556282beb8feabee2972e1971984f6dd'
-         '017184a4809c8b300490777f12c54047'
-         '25584700a0a679542929c4bed31433b6'
+         '82aa3d41226c4fd68aa892e107facb0e'
          '9a2bcd0298dc4f43372c7f0808458521'
          '8667abdfb0c25a663c03cb3197671932'
          '5b98928e0a507884cce468d0399196de'
@@ -54,22 +45,26 @@ md5sums=('5169d01c405bc3f866c59338e217968c'
          'adf116e0e44159b90e049079ee538a81'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          'a162a23b5db02738309e54b6ca9fcbc9'
-	 'a49390dd08e4f7702b8f4b550f1ad84e')	  
+         '4294bbcb39e5ee859b94b09ff4fb1e0c'
+         'a49390dd08e4f7702b8f4b550f1ad84e')
 build() {
   KARCH=x86
 
   cd $startdir/src/linux-$_basekernel
-  # added squashfs+lzma patch
-  patch -Np1 -i $startdir/src/squashfs3.3-patch || return 1
-  patch -Np2 -i $startdir/src/squashfs-2.6.25.patch || return 1
-  patch -Np1 -i $startdir/src/sqlzma3.3-optional.patch || return 1
-  patch -Np1 -i $startdir/src/aufs-patches.patch || return 1
+  # added squashfs+lzma+aufs patches
+  patch -Np1 -i $srcdir/squashfs3.3-patch || return 1
+  patch -Np2 -i $srcdir/squashfs-2.6.25.patch || return 1
+  patch -Np1 -i $srcdir/sqlzma3.3-optional.patch || return 1
+  patch -Np1 -i $srcdir/aufs-patches.patch || return 1
   # add injection support
-  patch -Np1 -i $startdir/src/mac80211_2.6.26_frag.patch || return 1
-  patch -Np1 -i $startdir/src/ath5k-frequency-chaos_2.6.26.2.patch || return 1
-  patch -Np1 -i $startdir/src/ieee80211_inject-2.6.22.patch || return 1
+  patch -Np1 -i $srcdir/mac80211_2.6.26_frag.patch || return 1
+  patch -Np1 -i $srcdir/ath5k-frequency-chaos_2.6.26.2.patch || return 1
+  patch -Np1 -i $srcdir/ieee80211_inject-2.6.22.patch || return 1
   patch -Np0 -i $srcdir/zd1211rw_inject_2.6.26.patch || return 1
+  # add openlog patch
   patch -Np0 -i $srcdir/openlog.patch || return 1
+  # add reiser4 patch
+  patch -Np1 -i $srcdir/reiser4-for-2.6.25.patch
   cp ../config ./.config
   # build the full kernel version to use in pathnames
   . ./.config
