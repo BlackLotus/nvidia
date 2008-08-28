@@ -40,6 +40,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://patches.aircrack-ng.org/ath5k-frequency-chaos_2.6.26.2.patch
 	http://patches.aircrack-ng.org/ieee80211_inject-2.6.22.patch
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
+	openlog.patch
 )
 md5sums=('5169d01c405bc3f866c59338e217968c'
          '556282beb8feabee2972e1971984f6dd'
@@ -53,7 +54,7 @@ md5sums=('5169d01c405bc3f866c59338e217968c'
          'adf116e0e44159b90e049079ee538a81'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          'a162a23b5db02738309e54b6ca9fcbc9'
-	 )
+	 'a49390dd08e4f7702b8f4b550f1ad84e')	  
 build() {
   KARCH=x86
 
@@ -68,6 +69,7 @@ build() {
   patch -Np1 -i $startdir/src/ath5k-frequency-chaos_2.6.26.2.patch || return 1
   patch -Np1 -i $startdir/src/ieee80211_inject-2.6.22.patch || return 1
   patch -Np0 -i $srcdir/zd1211rw_inject_2.6.26.patch || return 1
+  patch -Np0 -i $srcdir/openlog.patch || return 1
   cp ../config ./.config
   # build the full kernel version to use in pathnames
   . ./.config
