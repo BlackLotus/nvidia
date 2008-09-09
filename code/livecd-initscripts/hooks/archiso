@@ -47,7 +47,7 @@ run_hook ()
     msg ":: Mounting squashfs image"
     /bin/modprobe -q squashfs >/dev/null 2>&1
 
-    msg ":: Mounting root (union) filesystem"
+    msg ":: Mounting root (aufs) filesystem"
     /bin/modprobe -q aufs >/dev/null 2>&1
     /bin/mount -t aufs -o dirs=/tmpfs=rw none /real_root
 

@@ -12,7 +12,6 @@ run_hook ()
     bootmnt="/bootmnt"
     found=0
 
-    /bin/modprobe -q isofs >/dev/null 2>&1
     for cdrom in /dev/cd/*; do
         if mount -r -t iso9660 "${cdrom}" ${bootmnt} >/dev/null 2>&1; then
             if [ -e "${bootmnt}/archlive.sqfs" ]; then
