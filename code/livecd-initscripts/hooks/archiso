@@ -1,0 +1,81 @@
+# args: source, mountpoint
+_mnt_bind()
+{
+    msg "::: Binding ${1} to ${2}"
+    mkdir -p /real_root${2}
+    /bin/mount -o bind ${addon_dir}/${1} /real_root${2}
+}
+
+# args: image file
+_mnt_squashfs()
+{
+    msg "::: Adding new union branch: ${1}"
+    /bin/modprobe -q loop >/dev/null 2>&1
+    mkdir -p "/tmpfs/mnt/loop${LOOP_NUM}"
+    if ! /bin/losetup "/dev/loop${LOOP_NUM}" ${1} ; then
+        echo "ERROR: Cannot mount loop device /dev/loop${LOOP_NUM}"
+        echo "       Couldn't mount all addons"
+        break
+    fi
+    /bin/mount -r -t squashfs "/dev/loop${LOOP_NUM}" "/tmpfs/mnt/loop${LOOP_NUM}"
+    /bin/mount -t aufs -o remount,append=/tmpfs/mnt/loop${LOOP_NUM}=ro none "/real_root"
+    export LOOP_NUM=$(( $LOOP_NUM + 1 ))
+}
+
+run_hook ()
+{
+    if [ "x${ramdisk_size}" = "x" ]; then
+        ramdisk_size="75%"
+    fi
+    msg -n ":: Mounting tmpfs, size=${ramdisk_size}..."
+	mount -t tmpfs -o "size=${ramdisk_size}" tmpfs /tmpfs
+    msg "done."
+
+    if [ "x${BOOT_MOUNT}" = "x" ]; then
+        echo "ERROR: BOOT_MOUNT is not set. The boot-cd or boot-usb hook MUST"
+        echo "       be run before this one.  This image was improperly built"
+        exit 1
+    fi
+
+    base_img="${BOOT_MOUNT}/archlive.sqfs"
+    if [ "${copytoram}" = "y" ]; then
+        msg ":: Copying squashfs image to RAM"
+        /bin/cat ${base_img} > /tmpfs/archlive.sqfs
+        base_img="/tmpfs/archlive.sqfs"
+    fi
+
+    msg ":: Mounting squashfs image"
+    /bin/modprobe -q squashfs >/dev/null 2>&1
+
+    msg ":: Mounting root (union) filesystem"
+    /bin/modprobe -q aufs >/dev/null 2>&1
+    /bin/mount -t aufs -o dirs=/tmpfs=rw none /real_root
+
+    export LOOP_NUM="0"
+    addon_dir="${BOOT_MOUNT}/addons"
+
+    # layer the "pristine" base system image last
+    _mnt_squashfs ${base_img}
+
+    if [ -d /proc/sys/dev/cdrom ]; then
+        echo 0 > /proc/sys/dev/cdrom/lock
+        echo 0 > /proc/sys/dev/cdrom/autoeject
+    fi
+
+    if [ "${break}" = "y" ]; then
+        echo ":: Break requested, type 'exit' to resume operation"
+        echo "   NOTE: klibc contains no 'ls' binary, use 'echo *' instead"
+        PS1="ramfs$ " /bin/sh -i
+    fi
+
+    udevpid=$(/bin/minips -C udevd -o pid=)
+    [ "x${udevpid}" != "x" ] && /bin/kill -9 $udevpid 2>&1 >/dev/null
+    #Yep, we're bailing out here.  We don't need kinit.
+    #msg ":: Passing control to Archlinux Initscripts...Please Wait"
+    /bin/umount /sys
+    /bin/umount /proc
+    exec /bin/run-init -c /dev/console /real_root /sbin/init ${CMDLINE}
+    #PS1="ramfs$" /bin/sh -i
+}
+
+# vim:ft=sh:ts=4:sw=4:et:

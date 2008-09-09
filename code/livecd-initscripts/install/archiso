@@ -1,0 +1,11 @@
+install ()
+{
+    MODULES="squashfs isofs loop $(all_modules '/kernel/fs' | grep -v "nls") "
+    BINARIES=""
+    FILES=""
+    add_dir /real_root
+    add_dir /tmpfs
+    SCRIPT="archiso"
+}
+
+# vim:ft=sh:ts=4:sw=4:et:
