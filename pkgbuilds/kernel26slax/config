@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.26
-# Thu Aug 28 14:47:02 2008
+# Sun Sep 14 16:00:47 2008
 #
 # CONFIG_64BIT is not set
 CONFIG_X86_32=y
@@ -1565,7 +1565,8 @@ CONFIG_VIA_VELOCITY=m
 CONFIG_TIGON3=m
 CONFIG_BNX2=m
 CONFIG_QLA3XXX=m
-# CONFIG_ATL1 is not set
+CONFIG_ATL1=m
+CONFIG_ATL1E=m
 CONFIG_NETDEV_10000=y
 CONFIG_CHELSIO_T1=m
 CONFIG_CHELSIO_T1_1G=y

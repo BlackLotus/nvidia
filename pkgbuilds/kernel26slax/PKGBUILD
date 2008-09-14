@@ -3,7 +3,7 @@
 pkgname=kernel26slax
 _basekernel=2.6.26
 pkgver=2.6.26.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
 license=('GPL2')
@@ -32,10 +32,11 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
 	http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/reiser4-for-2.6.25.patch.bz2
 	openlog.patch
+	atl1e.patch
 )
 md5sums=('5169d01c405bc3f866c59338e217968c'
          '217dafcf500332885b04af429c390ab4'
-         '82aa3d41226c4fd68aa892e107facb0e'
+         '51118fc22b1efc5bb99007cc62e75574'
          '9a2bcd0298dc4f43372c7f0808458521'
          '8667abdfb0c25a663c03cb3197671932'
          '5b98928e0a507884cce468d0399196de'
@@ -45,7 +46,8 @@ md5sums=('5169d01c405bc3f866c59338e217968c'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          'a162a23b5db02738309e54b6ca9fcbc9'
          '4294bbcb39e5ee859b94b09ff4fb1e0c'
-         'a49390dd08e4f7702b8f4b550f1ad84e')
+         'a49390dd08e4f7702b8f4b550f1ad84e'
+	 '334e25de12e1ead876a750057988ed78')
 build() {
   KARCH=x86
 
@@ -64,6 +66,8 @@ build() {
   patch -Np0 -i $srcdir/openlog.patch || return 1
   # add reiser4 patch
   patch -Np1 -i $srcdir/reiser4-for-2.6.25.patch || return 1
+  # add atl1e support
+  patch -Np1 -i $srcdir/atl1e.patch || return 1 
   cp ../config ./.config
   # build the full kernel version to use in pathnames
   . ./.config
