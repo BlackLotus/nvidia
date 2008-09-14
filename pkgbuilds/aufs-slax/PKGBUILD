@@ -1,6 +1,6 @@
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-slax
-pkgver=20080908
+pkgver=20080914
 _realname=aufs
 pkgrel=1
 _kernver='2.6.26-SLAX'
@@ -69,7 +69,7 @@ build() {
 
   #sed -i 's|CONFIG_AUFS_FSYNC_SUPER_PATCH =|CONFIG_AUFS_FSYNC_SUPER_PATCH = y|' \
   #  local.mk || return 1
-  
+  sed -i '/^struct au_branch\;/i\#define\ FUSE_SUPER_MAGIC\ 0x65735546' fs/aufs25/super.h
   
   # build
   make KDIR=$startdir/../kernel26slax/src/linux-2.6.26 -f local.mk || return 1
