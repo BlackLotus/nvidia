@@ -1,6 +1,6 @@
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-slax
-pkgver=20080928
+pkgver=20081003
 _realname=aufs
 pkgrel=1
 _kernver='2.6.26-SLAX'
@@ -9,7 +9,6 @@ arch=('i686' 'x86_64')
 url="http://aufs.sourceforge.net/"
 license=('GPL2')
 makedepends=('cvs')
-depends=('kernel26slax>=2.6.26-2' 'kernel26slax<2.6.27' 'glibc')
 install=$pkgname.install
 source=()
 options=(!libtool !makeflags)
