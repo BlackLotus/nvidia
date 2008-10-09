@@ -2,8 +2,8 @@ run_hook ()
 {
     # external drives may need to settle
     msg ":: Waiting for usb devices to settle..."
-    /sbin/udevtrigger --subsystem-match=usb
-    /sbin/udevsettle
+    /sbin/udevadm trigger --subsystem-match=usb
+    /sbin/udevadm settle
     sleep 5
 
     msg ":: Scanning for boot cdrom device..."
