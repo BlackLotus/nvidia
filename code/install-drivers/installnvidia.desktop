@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Install nVidia
+Comment=Install proprietary nVidia drivers
+Exec=konsole -e "/usr/bin/installnvidia"
+Icon=/usr/share/pixmaps/installnvidia.png
+Categories=Application;System;
