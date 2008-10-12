@@ -1,6 +1,6 @@
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-slax
-pkgver=20081003
+pkgver=20081010
 _realname=aufs
 pkgrel=1
 _kernver='2.6.26-SLAX'
