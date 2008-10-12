@@ -1,0 +1,20 @@
+#!/bin/bash
+install_nvidia() {
+	yes J |sudo pacman -Sy livecd/nvidia$1
+}
+dialog --msgbox "Welcome to the chaox-ng nvidia installer. This program will guide you through the installation of the proprietary nvidia drivers. nVidia provides several versions of it\'s driver, for different chipset modules. The 71xx series supports the nvidia chipsets up to and including Geforce 2. The 96xx series supports chipsets from Geforce 2 to and including Geforce 4 and the 173xx series supports chipsets from Geforce 4 to Geforce 5. For current chipsets choose the normal nvidia series" 0 0
+clear
+dialog --menu "Choose your driver series" 0 0 0 1 "71xx series" 2 "96xx series" 3 "173xx series" 4 "current series" 2> /tmp/tmpz0r
+clear
+series=$(cat /tmp/tmpz0r)
+rm /tmp/tmpz0r
+case "$series" in
+	1 ) echo "installing series 71xx drivers" && install_nvidia -71xx;;
+	2 ) echo "installing series 96xx drivers" && install_nvidia -96xx;;
+	3 ) echo "installing series 173xx drivers" && install_nvidia -173xx;;
+	4 ) echo "installing current series drivers" && install_nvidia;;
+	* ) echo "user is a fucking idiot";;
+esac
+sudo modprobe nvidia
+sudo nvidia-xconfig -s 2> /tmp/nvidia-xconfig.err
+dialog --msgbox "Congratulations, you have succesfully installed the nvidia drivers, however, for the changes to take effect you have to restart X. You can do this by pressing ctrl+alt+backspace." 0 0 
