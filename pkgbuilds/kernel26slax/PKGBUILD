@@ -1,8 +1,8 @@
 # Maintainer: Jens Pranaitis <jens@jenux.homelinux.org>
 # Based on the work of godane <slaxemulator@gmail.com>
 pkgname=kernel26slax
-_basekernel=2.6.26
-pkgver=2.6.26.6
+_basekernel=2.6.27
+pkgver=2.6.27
 pkgrel=1
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
@@ -26,28 +26,28 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	squashfs-2.6.25.patch
 	sqlzma3.3-optional.patch
 	aufs-patches.patch
-	http://patches.aircrack-ng.org/mac80211_2.6.26_frag.patch
+	http://patches.aircrack-ng.org/mac80211_2.6.26-wl_frag.patch
 	http://patches.aircrack-ng.org/ath5k-frequency-chaos_2.6.26.2.patch
 	http://patches.aircrack-ng.org/ieee80211_inject-2.6.22.patch
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
-	http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/reiser4-for-2.6.25.patch.bz2
+	http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/reiser4-for-2.6.27.patch.bz2
 	openlog.patch
-	atl1e.patch
+	atl2-2.6.27.patch
 )
-md5sums=('5169d01c405bc3f866c59338e217968c'
-         '522a28eca9b5d5debed3f48997e3da32'
+md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
+         '92c886dd18f9f2ac7c63e0185e9ff707'
          '51118fc22b1efc5bb99007cc62e75574'
          '9a2bcd0298dc4f43372c7f0808458521'
          '8667abdfb0c25a663c03cb3197671932'
          '5b98928e0a507884cce468d0399196de'
          'e1cc3c48b5f52bb19b2b011bd488e065'
-         '573f7d9f66ac010e03841fa5413a9e6a'
+         'f37f42738a73d50d9e22d304bb6eba89'
          'adf116e0e44159b90e049079ee538a81'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          'a162a23b5db02738309e54b6ca9fcbc9'
-         '4294bbcb39e5ee859b94b09ff4fb1e0c'
+         '22988387f64f299489b90b484b2642cc'
          'a49390dd08e4f7702b8f4b550f1ad84e'
-	 '334e25de12e1ead876a750057988ed78')
+         'ab007556b0194704269723724ba003bb')
 build() {
   KARCH=x86
 
@@ -58,21 +58,21 @@ build() {
   patch -Np1 -i $srcdir/sqlzma3.3-optional.patch || return 1
   patch -Np1 -i $srcdir/aufs-patches.patch || return 1
   # add injection support
-  patch -Np1 -i $srcdir/mac80211_2.6.26_frag.patch || return 1
+  patch -Np1 -i $srcdir/mac80211_2.6.26-wl_frag.patch || return 1
   patch -Np1 -i $srcdir/ath5k-frequency-chaos_2.6.26.2.patch || return 1
   patch -Np1 -i $srcdir/ieee80211_inject-2.6.22.patch || return 1
   patch -Np0 -i $srcdir/zd1211rw_inject_2.6.26.patch || return 1
   # add openlog patch
   patch -Np0 -i $srcdir/openlog.patch || return 1
   # add reiser4 patch
-  patch -Np1 -i $srcdir/reiser4-for-2.6.25.patch || return 1
+  patch -Np1 -i $srcdir/reiser4-for-2.6.27.patch || return 1
   # add atl1e support
-  patch -Np1 -i $srcdir/atl1e.patch || return 1 
+  patch -Np1 -i $srcdir/atl2-2.6.27.patch || return 1 
   cp ../config ./.config
   # build the full kernel version to use in pathnames
   . ./.config
   ### next line is only needed for rc kernels
-  _kernver="2.6.26${CONFIG_LOCALVERSION}"
+  _kernver="2.6.27${CONFIG_LOCALVERSION}"
   #_kernver="${_basekernel}${CONFIG_LOCALVERSION}"
   # load configuration
   yes "" | make config

@@ -1,0 +1,43 @@
+--- a/firegl_public.c.orig	2008-09-18 12:43:24.000000000 -0400
++++ b/firegl_public.c	2008-09-18 12:54:11.000000000 -0400
+@@ -199,6 +199,13 @@
+ #define preempt_enable()
+ #endif
+ 
++/* Since 2.6.27 SMP_CALL_FUNCTION doesn't have a nonatomic/retry argument */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)
++#define SMP_CALL_FUNCTION(func, info, retry, wait) smp_call_function(func, info, wait)
++#else
++#define SMP_CALL_FUNCTION(func, info, retry, wait) smp_call_function(func, info, retry, wait)
++#endif
++
+ // ============================================================
+ /* globals */
+ 
+@@ -2924,7 +2931,7 @@
+ {
+ #ifdef __SMP__
+     /* write back invalidate all other CPUs (exported by kernel) */
+-	if (smp_call_function(deferred_flush, NULL, 1, 0) != 0)
++	if (SMP_CALL_FUNCTION(deferred_flush, NULL, 1, 0) != 0)
+ 		panic("timed out waiting for the other CPUs!\n");
+ 
+     /* invalidate this CPU */
+@@ -4654,7 +4661,7 @@
+    }
+ 
+ #ifdef CONFIG_SMP
+-   if (smp_call_function(KCL_setup_pat, NULL, 0, 1) != 0)
++   if (SMP_CALL_FUNCTION(KCL_setup_pat, NULL, 0, 1) != 0)
+        return 0;
+ #endif
+    KCL_setup_pat(NULL);
+@@ -4673,7 +4680,7 @@
+     }
+ 
+ #ifdef CONFIG_SMP
+-    if (smp_call_function(KCL_restore_pat, NULL, 0, 1) != 0)
++    if (SMP_CALL_FUNCTION(KCL_restore_pat, NULL, 0, 1) != 0)
+        return;
+ #endif
+     KCL_restore_pat(NULL);

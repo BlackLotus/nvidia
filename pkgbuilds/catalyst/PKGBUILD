@@ -4,8 +4,8 @@
 
 pkgname=catalyst
 pkgver=8.9
-_kernel_version=2.6.26
-pkgrel=1
+_kernel_version=2.6.27
+pkgrel=2
 pkgdesc="Proprietary AMD/ATI kernel drivers for Radeon brand cards. Stock kernel."
 arch=('i686' 'x86_64')
 url="http://www.ati.amd.com"
@@ -14,7 +14,7 @@ depends=("catalyst-utils>=${pkgver}")
 makedepends=()
 replaces=('ati-fglrx' 'fglrx') # Yay rebranding
 install=${pkgname}.install
-source=(http://www2.ati.com/drivers/linux/ati-driver-installer-${pkgver/./-}-x86.x86_64.run)
+source=(http://www2.ati.com/drivers/linux/ati-driver-installer-${pkgver/./-}-x86.x86_64.run 2.6.27.patch)
 md5sums=('9e1bb93afaf194907e6b141b2e3c524b')
 _kernver=${_kernel_version}-SLAX
 
@@ -38,10 +38,10 @@ build() {
     fi
     cd $startdir/src
     cd $startdir/src/lib/modules/fglrx/build_mod/
-
+    patch -Np1 -i $srcdir/2.6.27.patch ||return 1
     # Build the kernel module
     cp 2.6.x/Makefile .
-    make -C $startdir/../kernel26slax/src/linux-2.6.26 SUBDIRS="`pwd`" ARCH=$BUILDARCH modules || return 1
+    make -C $startdir/../kernel26slax/src/linux-2.6.27 SUBDIRS="`pwd`" ARCH=$BUILDARCH modules || return 1
 
     # Install the kernel module
     install -m 644 -D $startdir/src/lib/modules/fglrx/build_mod/fglrx.ko \

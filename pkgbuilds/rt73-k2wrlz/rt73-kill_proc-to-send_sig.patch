@@ -1,0 +1,68 @@
+diff -u rt73-k2wrlz-3.0.1/Module/rt_config.h rt73-k2wrlz-3.0.2/Module/rt_config.h
+--- rt73-k2wrlz-3.0.1/Module/rt_config.h	2008-07-22 10:35:22.000000000 +0200
++++ rt73-k2wrlz-3.0.2/Module/rt_config.h	2008-09-07 23:50:02.313602287 +0200
+@@ -115,6 +115,7 @@
+ #include <linux/unistd.h>
+ #include <asm/uaccess.h>
+ 
++#include <linux/kthread.h>
+ 
+ #ifndef ULONG
+ #define CHAR            signed char
+diff -u rt73-k2wrlz-3.0.1/Module/rtmp.h rt73-k2wrlz-3.0.2/Module/rtmp.h
+--- rt73-k2wrlz-3.0.1/Module/rtmp.h	2008-07-24 02:05:27.000000000 +0200
++++ rt73-k2wrlz-3.0.2/Module/rtmp.h	2008-09-07 23:53:24.716543793 +0200
+@@ -1382,7 +1382,9 @@
+ 
+ 	struct completion	mlmenotify;				/* thread begin/end	 */
+ 	struct completion	cmdnotify;				/* thread begin/end	 */
++	struct task_struct*	MLMEThr_ts;
+ 	pid_t			MLMEThr_pid;
++	struct task_struct*	RTUSBCmdThr_ts;
+ 	pid_t			RTUSBCmdThr_pid;
+ 
+ 	wait_queue_head_t	*wait;
+diff -u rt73-k2wrlz-3.0.1/Module/rtmp_init.c rt73-k2wrlz-3.0.2/Module/rtmp_init.c
+--- rt73-k2wrlz-3.0.1/Module/rtmp_init.c	2008-07-24 02:08:36.000000000 +0200
++++ rt73-k2wrlz-3.0.2/Module/rtmp_init.c	2008-09-07 23:55:34.551005505 +0200
+@@ -158,7 +157,8 @@
+ VOID CreateThreads(PRTMP_ADAPTER pAd)
+ {
+ 	// Creat MLME Thread
+-	pAd->MLMEThr_pid = kernel_thread(MlmeThread, pAd, CLONE_VM);
++	pAd->MLMEThr_ts = kthread_run(MlmeThread, pAd, "%s-Mlme", pAd->net_dev->name);
++	pAd->MLMEThr_pid = 1; //kernel_thread(MlmeThread, pAd, CLONE_VM);
+ 	if (pAd->MLMEThr_pid < 0) {
+ 		DBGPRINT(RT_DEBUG_ERROR, "%s: unable to start mlme thread for %s\n",
+ 				__FUNCTION__, pAd->net_dev->name);
+@@ -167,7 +167,8 @@
+ 	}
+ 
+ 	// Creat Command Thread
+-	pAd->RTUSBCmdThr_pid = kernel_thread(RTUSBCmdThread, pAd, CLONE_VM);
++	pAd->RTUSBCmdThr_ts = kthread_run(RTUSBCmdThread, pAd, "%s-Cmd", pAd->net_dev->name);
++	pAd->RTUSBCmdThr_pid = 1; //kernel_thread(RTUSBCmdThread, pAd, CLONE_VM);
+ 	if (pAd->RTUSBCmdThr_pid < 0) {
+ 		DBGPRINT(RT_DEBUG_ERROR, "%s: unable to start Cmd thread for %s\n",
+ 				__FUNCTION__, pAd->net_dev->name);
+@@ -184,7 +185,7 @@
+ 
+ 	if (pAd->MLMEThr_pid > 0)
+ 	{
+-		ret = kill_proc (pAd->MLMEThr_pid, SIGTERM, 1);
++		ret = send_sig(SIGTERM, pAd->MLMEThr_ts, 1);
+ 		if (ret)
+ 		{
+ 			DBGPRINT(RT_DEBUG_ERROR, "%s(%s): unable to signal mlme thread"
+@@ -197,9 +198,9 @@
+ 		}
+ 		else wait_for_completion (&pAd->mlmenotify);
+ 	}
+-	if (pAd->RTUSBCmdThr_pid> 0)
++	if (pAd->RTUSBCmdThr_pid > 0)
+ 	{
+-		ret = kill_proc (pAd->RTUSBCmdThr_pid, SIGTERM, 1);
++		ret = send_sig(SIGTERM, pAd->RTUSBCmdThr_ts, 1);
+ 		if (ret)
+ 		{
+ 			DBGPRINT(RT_DEBUG_ERROR, "%s(%s): unable to signal cmd thread"

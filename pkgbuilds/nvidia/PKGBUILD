@@ -3,8 +3,8 @@
 
 pkgname=nvidia
 pkgver=177.80
-_kernver='2.6.26-SLAX'
-pkgrel=1
+_kernver='2.6.27-SLAX'
+pkgrel=2
 pkgdesc="NVIDIA drivers for kernel26."
 arch=('i686' 'x86_64')
 [ "$CARCH" = "i686"   ] && ARCH=x86
@@ -29,7 +29,7 @@ build()
 
   cd usr/src/nv/
   ln -s Makefile.kbuild Makefile
-  make SYSSRC=$(pwd)/../../../../../../kernel26slax/src/linux-2.6.26 module || return 1
+  make SYSSRC=$(pwd)/../../../../../../kernel26slax/src/linux-2.6.27 module || return 1
   
   # install kernel module
   mkdir -p $startdir/pkg/lib/modules/${_kernver}/kernel/drivers/video/
