@@ -1,6 +1,6 @@
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-slax
-pkgver=20081014
+pkgver=20081018
 _realname=aufs
 pkgrel=1
 _kernver='2.6.27-SLAX'
@@ -30,7 +30,7 @@ build() {
   msg "Starting make..."
   cp -r ../$_cvsmod ../$_cvsmod-build
   cd ../$_cvsmod-build
-
+  sed 's|-le 26|-le 27|g' -i fs/aufs25/Makefile
   sed -i 's|CONFIG_AUFS_SPLICE_PATCH =|CONFIG_AUFS_SPLICE_PATCH = y|' \
     local.mk || return 1
 
@@ -68,8 +68,6 @@ build() {
 
   #sed -i 's|CONFIG_AUFS_FSYNC_SUPER_PATCH =|CONFIG_AUFS_FSYNC_SUPER_PATCH = y|' \
   #  local.mk || return 1
-  #sed -i '/^struct au_branch\;/i\#define\ FUSE_SUPER_MAGIC\ 0x65735546' fs/aufs25/super.h
-  
   # build
   make KDIR=$startdir/../kernel26slax/src/linux-2.6.27 -f local.mk || return 1
 
