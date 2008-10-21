@@ -2,7 +2,7 @@
 # Based on the work of godane <slaxemulator@gmail.com>
 pkgname=kernel26slax
 _basekernel=2.6.27
-pkgver=2.6.27
+pkgver=2.6.27.2
 pkgrel=1
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
@@ -35,7 +35,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	atl2-2.6.27.patch
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
-         '92c886dd18f9f2ac7c63e0185e9ff707'
+         '9d4c3a044f04c4a35be09a6501b0ef30'
          '51118fc22b1efc5bb99007cc62e75574'
          '9a2bcd0298dc4f43372c7f0808458521'
          '8667abdfb0c25a663c03cb3197671932'
@@ -52,6 +52,10 @@ build() {
   KARCH=x86
 
   cd $startdir/src/linux-$_basekernel
+  if [ "$_kernver" != "$pkgver" ]; then
+  # add latest kernel stable patch
+         patch -Np1 < $srcdir/patch-$pkgver ||return 1
+  fi
   # added squashfs+lzma+aufs patches
   patch -Np1 -i $srcdir/squashfs3.3-patch || return 1
   patch -Np2 -i $srcdir/squashfs-2.6.25.patch || return 1
