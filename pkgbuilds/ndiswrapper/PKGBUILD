@@ -2,10 +2,10 @@
 #Contributor: Tobias Powalowski <tpowa@archlinux.org>
 
 pkgname=ndiswrapper
-_kernver=2.6.27-SLAX
+_kernver=2.6.27.4-SLAX
 _kernpath=$(pwd)/../kernel26slax/src/linux-2.6.27
 pkgver=1.53
-pkgrel=5
+pkgrel=6
 pkgdesc="Module for NDIS (Windows Network Drivers) drivers supplied by vendors. For stock arch 2.6 kernel."
 license=('GPL')
 arch=(i686 x86_64)

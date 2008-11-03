@@ -1,9 +1,9 @@
 pkgname=rt73-k2wrlz
 pkgver=3.0.1
 pkgdesc="RaLink RT73 USB Enhanced Driver"
-pkgrel=6
+pkgrel=8
 _kernver=2.6.27
-_fullkernver=2.6.27-SLAX
+_fullkernver=2.6.27.4-SLAX
 _kernpath=$(pwd)/../kernel26slax/src/linux-$_kernver
 arch=('i686')
 license=("GPL2")

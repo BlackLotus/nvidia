@@ -3,8 +3,8 @@
 
 pkgname=nvidia-96xx
 pkgver=96.43.07
-_kernver='2.6.27-SLAX'
-pkgrel=2
+_kernver='2.6.27.4-SLAX'
+pkgrel=3
 pkgdesc="NVIDIA legacy drivers for kernel26, 96xx branch"
 arch=(i686 x86_64)
 license=('custom:NVIDIA')
