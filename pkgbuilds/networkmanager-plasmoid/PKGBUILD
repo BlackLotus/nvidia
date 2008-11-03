@@ -11,6 +11,7 @@ provides=('knetworkmanager')
 conflicts=('knetworkmanager')
 source=()
 md5sums=()
+_svn_plasma=svn://anonsvn.kde.org/home/kde/trunk/playground/base/plasma/
 _svntrunk=svn://anonsvn.kde.org/home/kde/trunk/playground/base/plasma/applets/$_svnmod
 _svnmod=networkmanager
 
@@ -18,10 +19,11 @@ build() {
 	cd $srcdir/ 
 	msg "Updating SVN entries for $_svnmod ..." 
 	touch ~/.subversion 
-	svn co $_svntrunk
+	svn co $_svn_plasma
 	msg "Finished update, starting build ..."
-	cd $_svnmod
+	cd plasma
 	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RELEASE || return 1
+	cd applets/networkmanager
 	make || return 1
 	make DESTDIR=$pkgdir/ install
 }
