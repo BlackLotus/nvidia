@@ -1,0 +1,76 @@
+diff --git a/drivers/net/wireless/iwlwifi/iwl-sta.c b/drivers/net/wireless/iwlwifi/iwl-sta.c
+index 6d1467d..78b1315 100644
+--- a/drivers/net/wireless/iwlwifi/iwl-sta.c
++++ b/drivers/net/wireless/iwlwifi/iwl-sta.c
+@@ -968,6 +968,11 @@ int iwl_get_sta_id(struct iwl_priv *priv, struct ieee80211_hdr *hdr)
+ 		iwl_print_hex_dump(priv, IWL_DL_DROP, (u8 *) hdr, sizeof(*hdr));
+ 		return priv->hw_params.bcast_sta_id;
+ 
++	/* If we are in monitor mode, use BCAST. This is required for
++	 * packet injection. */
++	case IEEE80211_IF_TYPE_MNTR:
++		return priv->hw_params.bcast_sta_id;
++
+ 	default:
+ 		IWL_WARNING("Unknown mode of operation: %d", priv->iw_mode);
+ 		return priv->hw_params.bcast_sta_id;
+diff --git a/drivers/net/wireless/iwlwifi/iwl-tx.c b/drivers/net/wireless/iwlwifi/iwl-tx.c
+index 032641d..55149d4 100644
+--- a/drivers/net/wireless/iwlwifi/iwl-tx.c
++++ b/drivers/net/wireless/iwlwifi/iwl-tx.c
+@@ -783,11 +783,6 @@ int iwl_tx_skb(struct iwl_priv *priv, struct sk_buff *skb)
+ 		goto drop_unlock;
+ 	}
+ 
+-	if (!priv->vif) {
+-		IWL_DEBUG_DROP("Dropping - !priv->vif\n");
+-		goto drop_unlock;
+-	}
+-
+ 	if ((ieee80211_get_tx_rate(priv->hw, info)->hw_value & 0xFF) ==
+ 	     IWL_INVALID_RATE) {
+ 		IWL_ERROR("ERROR: No TX rate available.\n");
+@@ -810,9 +805,11 @@ int iwl_tx_skb(struct iwl_priv *priv, struct sk_buff *skb)
+ 
+ 	/* drop all data frame if we are not associated */
+ 	if (ieee80211_is_data(fc) &&
+-	   (!iwl_is_associated(priv) ||
+-	    ((priv->iw_mode == IEEE80211_IF_TYPE_STA) && !priv->assoc_id) ||
+-	    !priv->assoc_station_added)) {
++	    (priv->iw_mode != IEEE80211_IF_TYPE_MNTR ||
++	    !(info->flags & IEEE80211_TX_CTL_INJECTED)) && /* packet injection */
++	    (!iwl_is_associated(priv) ||
++	     ((priv->iw_mode == IEEE80211_IF_TYPE_STA) && !priv->assoc_id) ||
++	     !priv->assoc_station_added)) {
+ 		IWL_DEBUG_DROP("Dropping - !iwl_is_associated\n");
+ 		goto drop_unlock;
+ 	}
+@@ -822,7 +819,10 @@ int iwl_tx_skb(struct iwl_priv *priv, struct sk_buff *skb)
+ 	hdr_len = ieee80211_get_hdrlen(le16_to_cpu(fc));
+ 
+ 	/* Find (or create) index into station table for destination station */
+-	sta_id = iwl_get_sta_id(priv, hdr);
++	if (info->flags & IEEE80211_TX_CTL_INJECTED)
++		sta_id = priv->hw_params.bcast_sta_id;
++	else
++		sta_id = iwl_get_sta_id(priv, hdr);
+ 	if (sta_id == IWL_INVALID_STATION) {
+ 		DECLARE_MAC_BUF(mac);
+ 
+diff --git a/drivers/net/wireless/iwlwifi/iwl4965-base.c b/drivers/net/wireless/iwlwifi/iwl4965-base.c
+index 60b7a64..380cc38 100644
+--- a/drivers/net/wireless/iwlwifi/iwl4965-base.c
++++ b/drivers/net/wireless/iwlwifi/iwl4965-base.c
+@@ -2680,12 +2680,6 @@ static int iwl4965_mac_tx(struct ieee80211_hw *hw, struct sk_buff *skb)
+ 
+ 	IWL_DEBUG_MAC80211("enter\n");
+ 
+-	if (priv->iw_mode == IEEE80211_IF_TYPE_MNTR) {
+-		IWL_DEBUG_MAC80211("leave - monitor\n");
+-		dev_kfree_skb_any(skb);
+-		return 0;
+-	}
+-
+ 	IWL_DEBUG_TX("dev->xmit(%d bytes) at rate 0x%02x\n", skb->len,
+ 		     ieee80211_get_tx_rate(hw, IEEE80211_SKB_CB(skb))->bitrate);
+ 
