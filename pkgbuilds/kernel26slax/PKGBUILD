@@ -3,7 +3,7 @@
 pkgname=kernel26slax
 _basekernel=2.6.27
 pkgver=2.6.27.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
 license=('GPL2')
@@ -21,9 +21,10 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
         config
 	aufs-patches.patch
 	http://patches.aircrack-ng.org/mac80211_2.6.26-wl_frag.patch
-	http://patches.aircrack-ng.org/ath5k-frequency-chaos_2.6.26.2.patch
+	http://patches.aircrack-ng.org/ath5k-injection-2.6.27-rc2.patch
 	http://patches.aircrack-ng.org/ieee80211_inject-2.6.22.patch
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
+	http://patches.aircrack-ng.org/b43-injection-2.6.26-wl.patch
 	http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/reiser4-for-2.6.27.patch.bz2
 	openlog.patch
 	atl2-2.6.27.patch
@@ -34,9 +35,10 @@ md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
          '3151601430cb9c374fadf2f146034307'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          'f37f42738a73d50d9e22d304bb6eba89'
-         'adf116e0e44159b90e049079ee538a81'
+         '69c34c83c6f64570efa3bc65c39304c5'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          'a162a23b5db02738309e54b6ca9fcbc9'
+         '303c049e71f0d5c7ef75b7286aa9bf94'
          '22988387f64f299489b90b484b2642cc'
          'a49390dd08e4f7702b8f4b550f1ad84e'
          'ab007556b0194704269723724ba003bb'
@@ -50,13 +52,14 @@ build() {
          patch -Np1 < $srcdir/patch-$pkgver ||return 1
   fi
   # add squashfs and aufs
-  patch -Np1 -i $srcdir/aufs-patches.patch
-  patch -Np1 -i $srcdir/squashfs3.4/kernel-patches/linux-2.6.27-rc4/squashfs3.4-patch
+  patch -Np1 -i $srcdir/aufs-patches.patch || return 1
+  patch -Np1 -i $srcdir/squashfs3.4/kernel-patches/linux-2.6.27-rc4/squashfs3.4-patch || return 1
   # add injection support
   patch -Np1 -i $srcdir/mac80211_2.6.26-wl_frag.patch || return 1
-  patch -Np1 -i $srcdir/ath5k-frequency-chaos_2.6.26.2.patch || return 1
+  patch -Np1 -i $srcdir/ath5k-injection-2.6.27-rc2.patch || return 1
   patch -Np1 -i $srcdir/ieee80211_inject-2.6.22.patch || return 1
   patch -Np0 -i $srcdir/zd1211rw_inject_2.6.26.patch || return 1
+  patch -Np1 -i $srcdir/b43-injection-2.6.26-wl.patch || return 1
   # add openlog patch
   patch -Np0 -i $srcdir/openlog.patch || return 1
   # add reiser4 patch
