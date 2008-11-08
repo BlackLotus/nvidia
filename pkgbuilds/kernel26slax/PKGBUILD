@@ -2,8 +2,8 @@
 # Based on the work of godane <slaxemulator@gmail.com>
 pkgname=kernel26slax
 _basekernel=2.6.27
-pkgver=2.6.27.4
-pkgrel=2
+pkgver=2.6.27.5
+pkgrel=1
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
 license=('GPL2')
@@ -31,8 +31,8 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://downloads.sourceforge.net/squashfs/squashfs3.4.tar.gz
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
-         'fa7cb6cf1ee5e796e89905806ffc6f01'
-         '3151601430cb9c374fadf2f146034307'
+         '5ae2b4af08b35b9ecc3653c8fc6c1905'
+         '5c84761c863ccc2fd9f741e631032694'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          'f37f42738a73d50d9e22d304bb6eba89'
          '69c34c83c6f64570efa3bc65c39304c5'

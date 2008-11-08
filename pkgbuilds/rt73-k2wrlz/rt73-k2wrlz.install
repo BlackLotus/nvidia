@@ -11,5 +11,5 @@ post_remove() {
 }
 
 _depmod() {
-  depmod -a 2.6.26-SLAX
+  depmod -a 2.6.27.5-SLAX
 }
