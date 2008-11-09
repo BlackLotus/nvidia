@@ -1,6 +1,6 @@
 # Contributor: bgmiki <vmikiv@gmail.com>
 pkgname=kaffeine4-svn
-pkgver=880891
+pkgver=881634
 pkgrel=2
 pkgdesc="Kaffeine Player KDE4 "
 arch=('i686' 'x86_64')
