@@ -20,16 +20,27 @@ _mnt_squashfs()
     /bin/mount -t aufs -o remount,append=/tmpfs/mnt/loop${LOOP_NUM}=ro none "/real_root"
     export LOOP_NUM=$(( $LOOP_NUM + 1 ))
 }
-
-run_hook ()
+mount_tmpfs () 
 {
     if [ "x${ramdisk_size}" = "x" ]; then
         ramdisk_size="75%"
     fi
     msg -n ":: Mounting tmpfs, size=${ramdisk_size}..."
-	mount -t tmpfs -o "size=${ramdisk_size}" tmpfs /tmpfs
+    mount -t tmpfs -o "size=${ramdisk_size}" tmpfs /tmpfs
     msg "done."
-
+}
+mount_ext2fs ()
+{
+   msg -n ":: Mounting ext2fs for persistable storage..."
+   mount -t ext2 $PERSISTABLE_MOUNT /tmpfs
+}
+run_hook ()
+{
+    if [ -e $PERSISTABLE_MOUNT ]; then
+        mount_ext2fs
+    else
+        mount_tmpfs
+    fi
     if [ "x${BOOT_MOUNT}" = "x" ]; then
         echo "ERROR: BOOT_MOUNT is not set. The boot-cd or boot-usb hook MUST"
         echo "       be run before this one.  This image was improperly built"

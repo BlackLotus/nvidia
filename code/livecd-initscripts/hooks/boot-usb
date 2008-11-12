@@ -30,6 +30,9 @@ run_hook ()
     else
         export BOOT_MOUNT="${bootmnt}"
     fi
+    if [ $PERSISTABLE=1 ]; then
+        export PERSISTABLE_MOUNT="$(echo ${usb} |sed -e 's/1/2/')"
+    fi
 }
 
 # vim:ft=sh:ts=4:sw=4:et:
