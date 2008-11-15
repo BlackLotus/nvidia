@@ -2,7 +2,7 @@
 # Based on the work of godane <slaxemulator@gmail.com>
 pkgname=kernel26slax
 _basekernel=2.6.27
-pkgver=2.6.27.5
+pkgver=2.6.27.6
 pkgrel=1
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=(i686)
@@ -20,7 +20,6 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://kernel.org/pub/linux/kernel/v2.6/patch-$pkgver.bz2
         config
 	aufs-patches.patch
-	http://patches.aircrack-ng.org/mac80211_2.6.26-wl_frag.patch
 	http://patches.aircrack-ng.org/ath5k-injection-2.6.27-rc2.patch
 	http://patches.aircrack-ng.org/ieee80211_inject-2.6.22.patch
 	http://patches.aircrack-ng.org/zd1211rw_inject_2.6.26.patch
@@ -31,10 +30,9 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://downloads.sourceforge.net/squashfs/squashfs3.4.tar.gz
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
-         '5ae2b4af08b35b9ecc3653c8fc6c1905'
+         'beec5a958abb1045c0b723dc1f195f7e'
          '5c84761c863ccc2fd9f741e631032694'
          'e1cc3c48b5f52bb19b2b011bd488e065'
-         'f37f42738a73d50d9e22d304bb6eba89'
          '69c34c83c6f64570efa3bc65c39304c5'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          'a162a23b5db02738309e54b6ca9fcbc9'
@@ -55,7 +53,6 @@ build() {
   patch -Np1 -i $srcdir/aufs-patches.patch || return 1
   patch -Np1 -i $srcdir/squashfs3.4/kernel-patches/linux-2.6.27-rc4/squashfs3.4-patch || return 1
   # add injection support
-  patch -Np1 -i $srcdir/mac80211_2.6.26-wl_frag.patch || return 1
   patch -Np1 -i $srcdir/ath5k-injection-2.6.27-rc2.patch || return 1
   patch -Np1 -i $srcdir/ieee80211_inject-2.6.22.patch || return 1
   patch -Np0 -i $srcdir/zd1211rw_inject_2.6.26.patch || return 1
@@ -74,7 +71,7 @@ build() {
   #_kernver="${_basekernel}${CONFIG_LOCALVERSION}"
   # load configuration
   #yes "" | make config
-  make menuconfig
+  #make menuconfig
   make bzImage modules || return 1
   mkdir -p $startdir/pkg/{lib/modules,boot}
   make INSTALL_MOD_PATH=$startdir/pkg modules_install || return 1

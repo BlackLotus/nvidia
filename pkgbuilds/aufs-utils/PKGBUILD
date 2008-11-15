@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-utils
-pkgver=20081108
+pkgver=20081114
 _realname=aufs
 pkgrel=1
 _kernver='2.6.27-SLAX'

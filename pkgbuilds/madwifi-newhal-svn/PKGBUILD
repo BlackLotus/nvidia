@@ -1,7 +1,7 @@
 # Contributor: Nils Christopher Brause <mastercpp@gmx.net>
 pkgname=madwifi-newhal-svn
 pkgver=3875
-pkgrel=6
+pkgrel=7
 pkgdesc="Madwifi drivers for Atheros wireless chipsets. HAL 0.10.5.6 branch. For stock arch 2.6 kernel."
 arch=(i686 x86_64)
 url="http://madwifi.org/"
@@ -14,7 +14,7 @@ source=(http://patches.aircrack-ng.org/madwifi-ng-r3745.patch)
 md5sums=(4b7b1d8836245070491fd521b0014ee0)
 install=$pkgname.install
 
-_kernver=2.6.27.5-SLAX;
+_kernver=2.6.27.6-SLAX;
 _svntrunk=http://svn.madwifi.org/madwifi/branches/madwifi-hal-0.10.5.6
 _svnmod=madwifi
 
