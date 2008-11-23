@@ -3,7 +3,7 @@
 
 pkgname=tiacx
 pkgver=20080210
-pkgrel=10
+pkgrel=11
 pkgdesc="OpenSource module for Texas Instruments ACX100/ACX111 wireless chips. For stock arch 2.6 kernel"
 arch=(i686 x86_64)
 url="http://acx100.sourceforge.net/"
@@ -14,7 +14,7 @@ source=(http://downloads.sourceforge.net/sourceforge/acx100/acx-$pkgver.tar.bz2 
 md5sums=('7d5ce3215708e4e9f95cf567a9ee3a12'
          '786344c994b8e36c91b2d81490c770b1'
          '9895f72f8d0c84956b0f6c3b16df0fe8')
-_kernver=2.6.27.6-SLAX
+_kernver=2.6.27.7-SLAX
 
 build() {
     cd $startdir/src/acx-$pkgver

@@ -1,28 +1,21 @@
 pkgname=rt73-k2wrlz
-pkgver=3.0.1
+pkgver=3.0.2
 pkgdesc="RaLink RT73 USB Enhanced Driver"
-pkgrel=11
+pkgrel=1
 _kernver=2.6.27
-_fullkernver=2.6.27.6-SLAX
+_fullkernver=2.6.27.7-SLAX
 _kernpath=$(pwd)/../kernel26slax/src/linux-$_kernver
 arch=('i686')
 license=("GPL2")
 url="http://homepages.tu-darmstadt.de/~p_larbig/wlan/"
 install=rt73-k2wrlz.install
-source=(http://homepages.tu-darmstadt.de/~p_larbig/wlan/$pkgname-$pkgver.tar.bz2 rt73-kill_proc-to-send_sig.patch http://patches.aircrack-ng.org/rt73_2.6.27.patch )
-
+source=(http://homepages.tu-darmstadt.de/~p_larbig/wlan/$pkgname-$pkgver.tar.bz2)
+md5sums=('26467e32a3e627c5da2d2c10a4f7f886')
 build() {
 	cd $startdir/src/$pkgname-$pkgver/Module/
-	patch -Np2 -i $srcdir/rt73-kill_proc-to-send_sig.patch ||return 1
-	patch -Np2 -i $srcdir/rt73_2.6.27.patch ||return 1
 	make KERNEL_SOURCES=$_kernpath ||return 1
 	mkdir -p $startdir/pkg/lib/modules/${_fullkernver}/extra/
 	install -D rt73.ko $startdir/pkg/lib/modules/${_fullkernver}/extra/
 	mkdir -p $startdir/pkg/lib/firmware
 	install rt73.bin $startdir/pkg/lib/firmware/
 }
-
-md5sums=('a849757dbdac10a2d9c9b5ff9ddcc189'
-         '70d0cd77115d5d3deb09b71407e42f87'
-         '4380254472ded0cb549911575aa60d86')
-

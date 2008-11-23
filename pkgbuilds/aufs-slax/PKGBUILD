@@ -1,9 +1,9 @@
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-slax
-pkgver=20081114
+pkgver=20081123
 _realname=aufs
 pkgrel=1
-_kernver='2.6.27.6-SLAX'
+_kernver='2.6.27.7-SLAX'
 pkgdesc="Another Unionfs Implementation. For using with arch-live kernel26slax."
 arch=('i686' 'x86_64')
 url="http://aufs.sourceforge.net/"
