@@ -1,0 +1,15 @@
+# Contributor: Jens Pranaitis
+pkgname=passcracking
+pkgver=1
+pkgrel=1
+pkgdesc="A little bash script for sending hashes to passcracking.com and milw0rm"
+arch=("i686")
+url="http://jenux.homelinux.org/~jens/passcracking"
+license=('GPL')
+depends=("gawk" "curl" "grep")
+source=("http://jenux.homelinux.org/~jens/$pkgname")
+md5sums=('e97af14d971ae13435bc5560ad8fb7f9')
+build() {
+  install -D -m755 "${srcdir}/$pkgname" "${pkgdir}/usr/bin/$pkgname"
+}
+# vim:set ts=2 sw=2 et:
