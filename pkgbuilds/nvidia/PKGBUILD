@@ -1,10 +1,10 @@
-# $Id: PKGBUILD 14563 2008-10-08 11:37:11Z pierre $
-# Maintainer : Thomas Baechler <thomas@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Thomas Baechler <thomas@archlinux.org>
 
 pkgname=nvidia
 pkgver=177.82
 _kernver='2.6.27.7-SLAX'
-pkgrel=3
+pkgrel=4
 pkgdesc="NVIDIA drivers for kernel26."
 arch=('i686' 'x86_64')
 [ "$CARCH" = "i686"   ] && ARCH=x86
@@ -21,7 +21,7 @@ md5sums=('882f34a662f0175682fdc4a9bec909ba')
 build()
 {
   # Extract
-  cd $startdir/src/
+  cd "${srcdir}"/
   sh NVIDIA-Linux-$ARCH-${pkgver}-pkg0.run --extract-only
   cd NVIDIA-Linux-$ARCH-${pkgver}-pkg0
   
@@ -32,8 +32,8 @@ build()
   make SYSSRC=$(pwd)/../../../../../../kernel26slax/src/linux-2.6.27 module || return 1
   
   # install kernel module
-  mkdir -p $startdir/pkg/lib/modules/${_kernver}/kernel/drivers/video/
-  install -m644 nvidia.ko $startdir/pkg/lib/modules/${_kernver}/kernel/drivers/video/
+  mkdir -p "${pkgdir}"/lib/modules/${_kernver}/kernel/drivers/video/
+  install -m644 nvidia.ko "${pkgdir}"/lib/modules/${_kernver}/kernel/drivers/video/
 
   sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_kernver}'/" $startdir/*.install
 }

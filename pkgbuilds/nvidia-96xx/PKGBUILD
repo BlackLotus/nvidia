@@ -4,7 +4,7 @@
 pkgname=nvidia-96xx
 pkgver=96.43.07
 _kernver='2.6.27.7-SLAX'
-pkgrel=7
+pkgrel=8
 pkgdesc="NVIDIA legacy drivers for kernel26, 96xx branch"
 arch=(i686 x86_64)
 license=('custom:NVIDIA')
@@ -23,7 +23,7 @@ md5sums=('8fa2b7c5e4629850d4bd33033ec46166'
 build()
 {
   # Extract
-  cd $startdir/src/
+  cd "${srcdir}"/
   sh NVIDIA-Linux-$ARCH-${pkgver}-pkg0.run --extract-only
   cd NVIDIA-Linux-$ARCH-${pkgver}-pkg0
   
@@ -34,8 +34,8 @@ build()
   make SYSSRC=$(pwd)/../../../../../../kernel26slax/src/linux-2.6.27 module 
   
   # install kernel module
-  mkdir -p $startdir/pkg/lib/modules/${_kernver}/kernel/drivers/video/
-  install -m644 nvidia.ko $startdir/pkg/lib/modules/${_kernver}/kernel/drivers/video/
+  mkdir -p "${pkgdir}"/lib/modules/${_kernver}/kernel/drivers/video/
+  install -m644 nvidia.ko "${pkgdir}"/lib/modules/${_kernver}/kernel/drivers/video/
 
   sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_kernver}'/" $startdir/*.install
 }

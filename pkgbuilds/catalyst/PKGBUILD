@@ -4,7 +4,7 @@
 
 pkgname=catalyst
 pkgver=8.11
-pkgrel=3
+pkgrel=4
 pkgdesc="Proprietary AMD/ATI kernel drivers for Radeon brand cards. Stock kernel."
 arch=('i686' 'x86_64')
 url="http://www.ati.amd.com"
@@ -18,39 +18,39 @@ md5sums=('9774452430dae8fd8b27eb6379da2e16')
 _kernver=2.6.27.7-SLAX
 
 build() {
-    cd $startdir/src
+    cd "${srcdir}"
 
     [ "$CARCH" = "i686" ] && _arch="x86"
     [ "$CARCH" = "x86_64" ] && _arch="x86_64"
 
     /bin/sh ./ati-driver-installer-${pkgver/./-}-x86.x86_64.run --extract archive_files
-    cd $startdir/src/archive_files/common
-    cp $startdir/src/archive_files/arch/${_arch}/* $startdir/src/ -r 
-    cp $startdir/src/archive_files/common/* $startdir/src/ -r 
+    cd "${srcdir}"/archive_files/common
+    cp "${srcdir}"/archive_files/arch/${_arch}/* "${srcdir}"/ -r 
+    cp "${srcdir}"/archive_files/common/* "${srcdir}"/ -r 
 
     if [ "$CARCH" == "x86_64" ]; then
       BUILDARCH=x86_64
-      cp $startdir/src/archive_files/x710_64a/* $startdir/src/ -r
+      cp "${srcdir}"/archive_files/x710_64a/* "${srcdir}"/ -r
     else
       BUILDARCH=i386
-      cp $startdir/src/archive_files/x710/* $startdir/src/ -r
+      cp "${srcdir}"/archive_files/x710/* "${srcdir}"/ -r
     fi
-    cd $startdir/src
-    cd $startdir/src/lib/modules/fglrx/build_mod/
+    cd "${srcdir}"
+    cd "${srcdir}"/lib/modules/fglrx/build_mod/
     #patch -Np1 -i $srcdir/2.6.27.patch ||return 1
     # Build the kernel module
     cp 2.6.x/Makefile .
     make -C $startdir/../kernel26slax/src/linux-2.6.27 SUBDIRS="`pwd`" ARCH=$BUILDARCH modules || return 1
 
     # Install the kernel module
-    install -m 644 -D $startdir/src/lib/modules/fglrx/build_mod/fglrx.ko \
-        $startdir/pkg/lib/modules/${_kernver}/video/fglrx.ko
+    install -m 644 -D "${srcdir}"/lib/modules/fglrx/build_mod/fglrx.ko \
+        "${pkgdir}"/lib/modules/${_kernver}/video/fglrx.ko
 
     sed -i -e "s/KERNEL_VERSION=.*/KERNEL_VERSION=${_kernver}/g" $startdir/$install
 
     # install licenses
-    install -m 0644 -D $startdir/src/archive_files/ATI_LICENSE.TXT \
-                     $startdir/pkg/usr/share/licenses/${pkgname}/AMD_ATI_LICENSE.TXT
+    install -m 0644 -D "${srcdir}"/archive_files/ATI_LICENSE.TXT \
+                     "${pkgdir}"/usr/share/licenses/${pkgname}/AMD_ATI_LICENSE.TXT
 
 }
 
