@@ -36,10 +36,11 @@ mount_ext2fs ()
 }
 run_hook ()
 {
-    if [ -e $PERSISTABLE_MOUNT ]; then
+    echo "persistable value: $PERSISTABLE_MOUNT"
+    if [ $PERSISTABLE_MOUNT ]; then
         mount_ext2fs
     else
-        mount_tmpfs
+    	mount_tmpfs
     fi
     if [ "x${BOOT_MOUNT}" = "x" ]; then
         echo "ERROR: BOOT_MOUNT is not set. The boot-cd or boot-usb hook MUST"
@@ -56,7 +57,8 @@ run_hook ()
 
     msg ":: Mounting squashfs image"
     /bin/modprobe -q squashfs >/dev/null 2>&1
-
+    /bin/modprobe -q sqlzma >/dev/null 2>&1
+    /bin/modprobe -q unlzma >/dev/null 2>&1
     msg ":: Mounting root (aufs) filesystem"
     /bin/modprobe -q aufs >/dev/null 2>&1
     /bin/mount -t aufs -o dirs=/tmpfs=rw none /real_root
