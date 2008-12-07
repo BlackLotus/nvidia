@@ -1,0 +1,22 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Torin <jakub.laszczynski@gmail.com>
+pkgname=metasploit3
+pkgver=3.2
+pkgrel=1
+pkgdesc="The Metasploit Framework is an advanced open-source platform for developing, testing, and using exploit code"
+depends=('ruby' 'ruby-gtk2' 'ruby-libglade')
+source=(http://spool.metasploit.com/releases/framework-$pkgver.tar.gz metasploit3.sh LICENSE metasploit.desktop)
+url="http://www.metasploit3.com/"
+license=('custom:"Metasploit Framework License v1.2"')
+arch=('i686' 'x86_64')
+md5sums=('d543bda031b36a247912aa9c6a0f74d9'
+         'ade22b22ec87ca2856a1cd823b89624e'
+	 'f12a25129e2dbcf718f071e980228f36'
+	 'af0738f2fbfaaf5bd1871bd1000421f0')
+build() {
+	mkdir -p "${pkgdir}"/{opt,etc/profile.d,usr/share/licenses/metasploit,usr/share/applications}
+	mv "${srcdir}"/framework-$pkgver "${pkgdir}"/opt/metasploit3
+	cp "${srcdir}"/metasploit3.sh "${pkgdir}"/etc/profile.d
+	cp "${srcdir}"/LICENSE "${pkgdir}"/usr/share/licenses/metasploit/
+	cp "${srcdir}"/metasploit.desktop "${pkgdir}"/usr/share/applications/
+}
