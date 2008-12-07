@@ -2,13 +2,14 @@
 pkgname=passcracking
 pkgver=$(date +%y%m%d%H%M)
 pkgrel=1
-pkgdesc="A little bash script for sending hashes to passcracking.com and milw0rm"
+pkgdesc="A little python script for sending hashes to passcracking.com and milw0rm"
 arch=("i686")
 url="http://jenux.homelinux.org/~jens/passcracking"
 license=('GPL')
-depends=("gawk" "curl" "grep")
-source=("http://github.com/jensp/chaox-ng-livecd/raw/master/code/passcracking")
+depends=("python")
+source=("http://github.com/jensp/chaox-ng-livecd/raw/master/code/passcracking.py" "http://github.com/jensp/chaox-ng-livecd/raw/master/code/hashfind.py")
 build() {
-  install -D -m755 "${srcdir}"/$pkgname "${pkgdir}"/usr/bin/$pkgname
+  install -D -m755 "${srcdir}"/passcracking.py "${pkgdir}"/usr/bin/$pkgname || return 1
+  install -D -m644 "${srcdir}"/hashfind.py "${pkgdir}"/usr/lib/python2.6/hashfind.py || return 1
 }
 # vim:set ts=2 sw=2 et:
