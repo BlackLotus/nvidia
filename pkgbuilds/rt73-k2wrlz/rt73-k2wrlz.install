@@ -11,5 +11,6 @@ post_remove() {
 }
 
 _depmod() {
-  depmod -a 2.6.27.6-SLAX
+  KERNEL_VERSION='2.6.27'
+  depmod -a $KERNEL_VERSION
 }

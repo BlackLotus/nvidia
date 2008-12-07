@@ -1,10 +1,10 @@
-# $Id: PKGBUILD 10000 2008-08-22 16:54:44Z andyrtr $
-# Maintainer: Travis Willard <travis@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Travis Willard <travis@archlinux.org>
 # Contributor: amdviaman
 
 pkgname=catalyst
 pkgver=8.11
-pkgrel=4
+pkgrel=5
 pkgdesc="Proprietary AMD/ATI kernel drivers for Radeon brand cards. Stock kernel."
 arch=('i686' 'x86_64')
 url="http://www.ati.amd.com"
@@ -15,7 +15,7 @@ replaces=('ati-fglrx' 'fglrx') # Yay rebranding
 install=${pkgname}.install
 source=(http://www2.ati.com/drivers/linux/ati-driver-installer-${pkgver/./-}-x86.x86_64.run)
 md5sums=('9774452430dae8fd8b27eb6379da2e16')
-_kernver=2.6.27.7-SLAX
+_kernver=2.6.27.8-SLAX
 
 build() {
     cd "${srcdir}"

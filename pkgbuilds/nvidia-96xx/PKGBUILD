@@ -1,10 +1,10 @@
-# $Id: PKGBUILD 8444 2008-08-11 05:13:08Z tpowa $
-# Maintainer : Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
 
 pkgname=nvidia-96xx
 pkgver=96.43.07
-_kernver='2.6.27.7-SLAX'
-pkgrel=8
+_kernver='2.6.27.8-SLAX'
+pkgrel=9
 pkgdesc="NVIDIA legacy drivers for kernel26, 96xx branch"
 arch=(i686 x86_64)
 license=('custom:NVIDIA')
