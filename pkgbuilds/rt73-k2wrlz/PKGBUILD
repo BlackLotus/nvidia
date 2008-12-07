@@ -18,5 +18,5 @@ build() {
 	install -D rt73.ko "${pkgdir}"/lib/modules/${_fullkernver}/extra/
 	mkdir -p "${pkgdir}"/lib/firmware
 	install rt73.bin "${pkgdir}"/lib/firmware/
-	sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_kernver}'/" $startdir/*.install
+	sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_fullkernver}'/" $startdir/*.install
 }
