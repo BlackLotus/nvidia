@@ -22,7 +22,7 @@ def milw0rm(hash):
       return 1,1
 def passcracking(hash):
    result=urllib.urlopen('http://passcracking.com/index.php','datafromuser='+hash).read()
-   passcrackingR=re.compile(hash+'<\/td><td bgcolor=#......>(.+)<\/td><td>\d+<\/td><\/tr><\/table>')
+   passcrackingR=re.compile(hash+'<\/td><td bgcolor=#......>(.+)<\/td><td>')
    if passcrackingR.search(result):
       return hash,passcrackingR.search(result).group(1)
    else:
