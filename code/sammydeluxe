@@ -1,17 +1,34 @@
 #!/usr/bin/python
-import re
-import os
-import commands
-import dbus
+import os,re,commands
+
+"""Simple script to automagic pasts samdumps of Windows partitions in the users home dir
+Atm it uses a lot sudo because i want to go sure that no error happens because of permissions
+It's ugly I know but it will be changed asap"""
 
 exec2=commands.getoutput
+username=os.getenv('USER')
 fdisk=exec2('sudo fdisk -l')
-fat='0b'
-ntfs='7'
+fdiskR=re.compile('/dev/(\D+\d)[\s\*]+\d+\s+\d+\s+\d+\s+(\d+)')
 
-fdiskR=re.compile('/dev/(\D+\d)\s+\d+\s+\d+\s+\d+\s+['+fat+'|'+ntfs+']')
-dev=fdiskR.findall(fdisk)
+devices=fdiskR.findall(fdisk)
 
-for hd in dev:
-    exec2('mkdir /mnt/'+hd)
-    mountE=exec2('sudo mount /dev/'+hd+' /mnt/'+hd)
+def samdump(hd,windir,dumpfile):
+	sdumpR=re.compile('[Error|Cannot]')
+	sdumpE=exec2('sudo samdump2 -o '+dumpfile+' /'+hd+'/'+windir+'/config/SYSTEM /'+hd+'/'+windir+'/config/SAM')
+	chownE=exec2('chown '+user+':'+user+' '+dumpfile)
+	if sdumpR.match(sdumpE):
+		return None
+	else:
+		return 0
+
+for hd in devices:
+	mkdirE=exec2('sudo mkdir /mnt/'+hd[0])
+	mountE=exec2('sudo mount /dev/'+hd[0]+' /mnt/'+hd[0])
+	for windir in os.listdir('/mnt/'+hd[0]):
+		if os.path.exists('/mnt/'+hd[0]+'/'+windir+'/System32') or os.path.exists('/mnt/'+hd[0]+'/'+windir+'/system32') or os.path.exists('/mnt/'+hd[0]+'/'+windir+'/SYSTEM32'):
+#			print windir
+			dumpfile='/home/'+username+'/samdump.'+hd[0]+'.'+windir
+			sdump=samdump(hd[0],windir,dumpfile)
+			if sdump==0:
+				print 'Samdump for /'+hd[0]+'/'+windir+' dumped in '+dumpfile
+			
