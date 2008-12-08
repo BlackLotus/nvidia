@@ -1,0 +1,19 @@
+#!/usr/bin/python
+import dbus
+from dbus.mainloop.glib import DBusGMainLoop
+import gobject
+
+def Responder(device_udi):
+    print device_udi
+
+DBusGMainLoop(set_as_default=True)
+dbus_session_bus = dbus.SessionBus()
+dbus_system_bus = dbus.SystemBus()
+
+hal_object = dbus_system_bus.get_object('org.freedesktop.Hal','/org/freedesktop/Hal/Manager')
+hal_interface = dbus.Interface(hal_object, 'org.freedesktop.Hal.Manager')
+
+hal_interface.connect_to_signal('DeviceAdded', lambda *args: Responder(*args))
+
+loop = gobject.MainLoop()
+loop.run()
