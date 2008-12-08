@@ -33,7 +33,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
          'ec23e3dce22b23ca681199fe515f10fb'
-         '6f057b4c0c02582a225c24e619156610'
+         'd21ba97bdba70b223afe3596978b7936'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          '69c34c83c6f64570efa3bc65c39304c5'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
