@@ -1,6 +1,6 @@
 install ()
 {
-    MODULES="$(all_modules '/kernel/fs/aufs')"
+    MODULES="squashfs sqlzma unlzma $(all_modules '/kernel/fs/aufs')"
     BINARIES=""
     FILES=""
     add_dir /real_root
