@@ -24,7 +24,8 @@ def samdump(hd,windir,dumpfile):
 
 for hd in devices:
 	mkdirE=exec2('sudo mkdir /mnt/'+hd[0])
-	mountE=exec2('sudo mount /dev/'+hd[0]+' /mnt/'+hd[0])
+        mountE=exec2('sudo mount -o umask=0000 /dev/'+hd[0]+' /mnt/'+hd[0])
+	mount2E=exec2('sudo mount /dev/'+hd[0]+' /mnt/'+hd[0])
 	for windir in os.listdir('/mnt/'+hd[0]):
 		if os.path.exists('/mnt/'+hd[0]+'/'+windir+'/System32') or os.path.exists('/mnt/'+hd[0]+'/'+windir+'/system32') or os.path.exists('/mnt/'+hd[0]+'/'+windir+'/SYSTEM32'):
 			dumpfile=home+'/samdump.'+hd[0]+'.'+windir
