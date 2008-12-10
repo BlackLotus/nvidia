@@ -1,10 +1,7 @@
 pkgname=rt73-k2wrlz
 pkgver=3.0.2
 pkgdesc="RaLink RT73 USB Enhanced Driver"
-pkgrel=3
-_kernver=2.6.27
-_fullkernver=2.6.27.8-SLAX
-_kernpath=$(pwd)/../kernel26slax/src/linux-$_kernver
+pkgrel=4
 arch=('i686')
 license=("GPL2")
 url="http://homepages.tu-darmstadt.de/~p_larbig/wlan/"
@@ -12,11 +9,12 @@ install=rt73-k2wrlz.install
 source=(http://homepages.tu-darmstadt.de/~p_larbig/wlan/$pkgname-$pkgver.tar.bz2)
 md5sums=('26467e32a3e627c5da2d2c10a4f7f886')
 build() {
+	source "${startdir}"/../kernel.env
 	cd "${srcdir}"/$pkgname-$pkgver/Module/
-	make KERNEL_SOURCES=$_kernpath ||return 1
-	mkdir -p "${pkgdir}"/lib/modules/${_fullkernver}/extra/
-	install -D rt73.ko "${pkgdir}"/lib/modules/${_fullkernver}/extra/
+	make KERNEL_SOURCES=$_kerndir ||return 1
+	mkdir -p "${pkgdir}"/lib/modules/${_kernver}/extra/
+	install -D rt73.ko "${pkgdir}"/lib/modules/${_kernver}/extra/
 	mkdir -p "${pkgdir}"/lib/firmware
 	install rt73.bin "${pkgdir}"/lib/firmware/
-	sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_fullkernver}'/" $startdir/*.install
+	sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_kernver}'/" $startdir/*.install
 }
