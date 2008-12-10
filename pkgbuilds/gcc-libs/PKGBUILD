@@ -1,5 +1,5 @@
-# $Id: PKGBUILD 6599 2008-07-25 17:11:14Z andyrtr $
-# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
 pkgname=gcc-libs
 pkgver=4.3.2
 pkgrel=1
@@ -11,11 +11,9 @@ groups=('base')
 url="http://gcc.gnu.org"
 depends=('glibc>=2.8-2')
 makedepends=('binutils>=2.18-9' 'gcc>=4.3.1' 'mpfr>=2.3.1' 'texinfo')
-conflicts=('gcc-fortran' 'gcc-objc')
-provides=("gcc-objc=${pkgver}")
 options=('!libtool' '!emptydirs')
-source=(ftp://gcc.gnu.org/pub/gcc/releases/gcc-${pkgver}/gcc-{core,g++,objc}-${pkgver}.tar.bz2
-	#ftp://gcc.gnu.org/pub/gcc/snapshots/${_snapshot}/gcc-{core,g++,objc}-${_snapshot}.tar.bz2
+source=(ftp://gcc.gnu.org/pub/gcc/releases/gcc-${pkgver}/gcc-{core,g++}-${pkgver}.tar.bz2
+	#ftp://gcc.gnu.org/pub/gcc/snapshots/${_snapshot}/gcc-{core,g++}-${_snapshot}.tar.bz2
 	gcc_pure64.patch
 	gcc-hash-style-both.patch)
 md5sums=('dd8048b43d3d4e5595bcade47b9144c6'
@@ -47,12 +45,12 @@ build() {
   mkdir build
   cd build
   ../configure --prefix=/usr --enable-shared \
-      --enable-languages=c,c++,objc,obj-c++,treelang --enable-threads=posix \
+      --enable-languages=c,c++,treelang --enable-threads=posix \
       --enable-__cxa_atexit  --disable-multilib --libdir=/usr/lib \
       --libexecdir=/usr/lib --enable-clocale=gnu --disable-libstdcxx-pch \
-      --with-tune=pentium-m
+      --with-tune=generic
   make || return 1
-  make -j1 DESTDIR=${pkgdir} install-target-libstdc++-v3 install-target-libmudflap install-target-libgomp install-target-libssp install-target-libobjc install-target-libgcc || return 1
+  make -j1 DESTDIR=${pkgdir} install-target-libstdc++-v3 install-target-libmudflap install-target-libgomp install-target-libssp  install-target-libgcc || return 1
 
   # Cleanup, libgomp installs the whole compiler it seems...
   rm -rf ${pkgdir}/usr/include
