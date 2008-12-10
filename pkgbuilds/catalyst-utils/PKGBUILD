@@ -1,11 +1,11 @@
-# $Id: PKGBUILD 9999 2008-08-22 16:45:38Z andyrtr $
-# Maintainer: Travis Willard <travisw@wmpub.ca>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Travis Willard <travisw@wmpub.ca>
 
 # Thanks to dibblethewrecker for the original work and packages.
 # Thanks to testing monkey S1G1 for contributions
 
 pkgname=catalyst-utils
-pkgver=8.11
+pkgver=8.12
 pkgrel=1
 pkgdesc="Proprietary AMD/ATI userspace tools and libraries for Radeon brand cards."
 arch=('i686' 'x86_64')
@@ -20,7 +20,7 @@ provides=('libgl')
 install=${pkgname}.install
 source=(http://www2.ati.com/drivers/linux/ati-driver-installer-${pkgver/./-}-x86.x86_64.run \
         amdcccle.desktop catalyst.sh atieventsd.sh ati-powermode.sh.patch)
-md5sums=('9774452430dae8fd8b27eb6379da2e16'
+md5sums=('2a62d8c5173f091379e458371782a580'
          '1f4b870e977b155af549442932e8ce6f'
          'bdafe749e046bfddee2d1c5e90eabd83'
          'f729bf913613f49b0b9759c246058a87'
