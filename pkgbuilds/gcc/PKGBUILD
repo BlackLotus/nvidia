@@ -22,7 +22,6 @@ source=(ftp://gcc.gnu.org/pub/gcc/releases/gcc-${pkgver}/gcc-{core,g++}-${pkgver
 	)
 md5sums=('dd8048b43d3d4e5595bcade47b9144c6'
          'bfdf8d19e1b85f522f8b8d48d25e7aaa'
-         '08efa42ef267f8759146aa4e11904d25'
          '990881456a89b1ffbd68d2d7188759da'
          '4030ee1c08dd1e843c0225b772360e76'
          'bb420bc84b1104455b7230b1cd4b96c2')

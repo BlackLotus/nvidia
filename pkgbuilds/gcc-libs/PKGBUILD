@@ -2,7 +2,7 @@
 # Contributor: Jan de Groot <jgc@archlinux.org>
 pkgname=gcc-libs
 pkgver=4.3.2
-pkgrel=1
+pkgrel=2
 #_snapshot=4.3-20080724
 pkgdesc="Runtime libraries shipped by GCC for C and C++ languages"
 arch=(i686 x86_64)
