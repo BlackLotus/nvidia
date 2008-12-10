@@ -18,7 +18,7 @@ _svntrunk="http://trac.aircrack-ng.org/svn/trunk"
 _svnmod=aircrack
 
 build() {
-  cd $startdir/src
+  cd ${srcdir}
   msg "Connecting to SVN server...."
   if [ -d $_svnmod/.svn ]; then
     (cd $_svnmod && svn up -r $pkgver)
@@ -34,5 +34,5 @@ build() {
   # BUILD
   #
   make SQLITE=true || return 1
-  make prefix=/usr SQLITE=true DESTDIR=$startdir/pkg/ install
+  make prefix=/usr SQLITE=true DESTDIR=${pkgdir}/ install
 }

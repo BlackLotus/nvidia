@@ -14,8 +14,8 @@ source=(http://www.ece.uvic.ca/~mdadams/$pkgname/software/$pkgname-$pkgver.zip)
 md5sums=('a342b2b4495b3e1394e161eb5d85d754')
 
 build() {
-  cd $startdir/src/$pkgname-$pkgver
+  cd ${srcdir}/$pkgname-$pkgver
   ./configure --prefix=/usr --enable-shared --disable-opengl
   make || return 1
-  make DESTDIR=$startdir/pkg install || return 1
+  make DESTDIR=${pkgdir} install || return 1
 }

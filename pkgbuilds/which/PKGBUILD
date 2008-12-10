@@ -14,10 +14,10 @@ source=(http://www.xs4all.nl/~carlo17/$pkgname/$pkgname-$pkgver.tar.gz)
 md5sums=('95be0501a466e515422cde4af46b2744')
 
 build() {
-  cd $startdir/src/$pkgname-$pkgver
+  cd ${srcdir}/$pkgname-$pkgver
   ./configure --prefix=/usr
   make || return 1
-  make DESTDIR=$startdir/pkg install
+  make DESTDIR=${pkgdir} install
 
   rm -f ${pkgdir}/usr/share/info/dir
 }

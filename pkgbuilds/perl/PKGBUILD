@@ -43,7 +43,7 @@ build() {
   # since it supports sleepycat's db 4.1.x
 #  cd ext
 #  rm -rf DB_File
-#  mv $startdir/src/DB_File-1.814 ./DB_File
+#  mv ${srcdir}/DB_File-1.814 ./DB_File
 
   cd ${startdir}/src/${pkgname}-${pkgver}
   patch -Np0 -i ../perl-5.10.0-archlinux-inc-order.patch

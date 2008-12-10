@@ -13,7 +13,7 @@ source=(http://code.kryo.se/iodine/$pkgname-$pkgver.tar.gz)
 md5sums=('890f13ab9ee7ea722baf0ceb3ee561c0')
 
 	build() {
-	        cd $startdir/src/$pkgname-$pkgver
+	        cd ${srcdir}/$pkgname-$pkgver
 		make  || return 1
-		make prefix=/usr DESTDIR=$startdir/pkg install 
+		make prefix=/usr DESTDIR=${pkgdir} install 
 	}

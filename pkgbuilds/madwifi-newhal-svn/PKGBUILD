@@ -20,7 +20,7 @@ _svnmod=madwifi
 
 build()
 {
-  cd $startdir/src
+  cd ${srcdir}
   if [ -d $_svnmod/.svn ]; then
     msg "svn update.."
     cd $_svnmod
@@ -33,5 +33,5 @@ build()
 
   msg "make install-modules.."
   patch -Np1 -i $srcdir/madwifi-ng-r3745.patch || return 1
-  KERNELPATH=$startdir/../kernel26slax/src/linux-2.6.27 KERNELRELEASE=$_kernver DESTDIR=$startdir/pkg make install-modules || return 1
+  KERNELPATH=$startdir/../kernel26slax/src/linux-2.6.27 KERNELRELEASE=$_kernver DESTDIR=${pkgdir} make install-modules || return 1
 }

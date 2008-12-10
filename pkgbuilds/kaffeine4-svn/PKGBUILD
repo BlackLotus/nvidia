@@ -16,7 +16,7 @@ _langs=()
 
 build() {
   # start building
-  cd $startdir/src
+  cd ${srcdir}
 
   if [ -d $_svnmod/.svn ]; then
     (cd $_svnmod && svn up)
@@ -30,12 +30,12 @@ build() {
   mkdir -p $_svnmod-build
   cd $_svnmod-build
 
-  cmake $startdir/src/$_svnmod -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RELEASE
+  cmake ${srcdir}/$_svnmod -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RELEASE
 
   make || return 1
-  make DESTDIR=$startdir/pkg install || return 1
+  make DESTDIR=${pkgdir} install || return 1
 
   #clean up build directory
-  rm -rf $startdir/src/$_svnmod-build
+  rm -rf ${srcdir}/$_svnmod-build
 }
 
