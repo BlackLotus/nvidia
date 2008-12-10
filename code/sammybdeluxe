@@ -1,9 +1,9 @@
 #!/usr/bin/python
 import os,re,commands
 
-"""Simple script to automagic pasts samdumps of Windows partitions in the users home dir
-Atm it uses a lot sudo because i want to go sure that no error happens because of permissions
-It's ugly I know but it will be changed asap"""
+"""Simple script to automagically paste samdumps of Windows partitions in the users home dir.
+ATM it uses a lot of sudo because i want to go sure that no error happens because of permissions
+It's ugly I know but it will be changed ASAP"""
 
 exec2=commands.getoutput
 username=os.getenv('USER')
