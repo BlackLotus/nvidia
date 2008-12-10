@@ -1,11 +1,11 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Based on the work of godane <slaxemulator@gmail.com>
-pkgname=kernel26slax
+pkgname=kernel26-chaox
 _basekernel=2.6.27
 pkgver=2.6.27.8
 pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
-arch=(i686)
+arch=("i686")
 license=('GPL2')
 groups=('base')
 url="http://www.kernel.org"
@@ -13,7 +13,7 @@ depends=('coreutils' 'module-init-tools' 'mkinitcpio>=0.5.18')
 replaces=('kernel24' 'kernel24-scsi' 'kernel26-scsi'
           'alsa-driver' 'ieee80211' 'hostap-driver26'
           'pwc' 'nforce' 'squashfs' 'ivtv'
-	  'zd1211' 'kvm-modules' 'iwlwifi' 'rt2x00-cvs' 'kernel26')
+	  'zd1211' 'kvm-modules' 'iwlwifi' 'rt2x00-cvs' 'kernel26' 'kernel26slax')
 provides=('kernel26')
 install=$pkgname.install
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
@@ -33,7 +33,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
          'ec23e3dce22b23ca681199fe515f10fb'
-         '9d6dd1de6535a186196520f82e867c8c'
+         '58a574aff76100dad90f397b9c38af1d'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          '69c34c83c6f64570efa3bc65c39304c5'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
@@ -75,7 +75,6 @@ build() {
   . ./.config
   ### next line is only needed for rc kernels
   _kernver="$pkgver"${CONFIG_LOCALVERSION}""
-  #_kernver="${_basekernel}${CONFIG_LOCALVERSION}"
   # load configuration
   #yes "" | make config
   make menuconfig
