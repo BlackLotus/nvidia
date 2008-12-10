@@ -1,10 +1,8 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
-pkgname=aufs-slax
+pkgname=aufs
 pkgver=20081207
-_realname=aufs
 pkgrel=1
-_kernver='2.6.27.8-SLAX'
 pkgdesc="Another Unionfs Implementation. For using with arch-live kernel26slax."
 arch=('i686' 'x86_64')
 url="http://aufs.sourceforge.net/"
@@ -14,10 +12,11 @@ install=$pkgname.install
 source=()
 options=(!libtool !makeflags)
 md5sums=()
-_cvsroot=":pserver:anonymous:@$_realname.cvs.sourceforge.net:/cvsroot/aufs"
-_cvsmod="aufs"
+_cvsroot=":pserver:anonymous:@$pkgname.cvs.sourceforge.net:/cvsroot/aufs"
+_cvsmod="$pkgname"
 
 build() {
+  source "${startdir}"/../kernel.env
   cd "${srcdir}"
   msg "Connecting to $_cvsmod.sourceforge.net CVS server...."
   if [ -d $_cvsmod/CVS ]; then
@@ -70,7 +69,7 @@ build() {
   #sed -i 's|CONFIG_AUFS_FSYNC_SUPER_PATCH =|CONFIG_AUFS_FSYNC_SUPER_PATCH = y|' \
   #  local.mk || return 1
   # build
-  make KDIR=$startdir/../kernel26slax/src/linux-2.6.27 -f local.mk || return 1
+  make KDIR=$_kerndir -f local.mk || return 1
 
   # install
   install -D -m644 fs/aufs25/aufs.ko \
