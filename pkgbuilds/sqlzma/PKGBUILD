@@ -6,9 +6,7 @@ pkgname=sqlzma
 _realname=squashfs
 pkgver=3.4
 lzmaver=457
-kver=2.6.27.8-SLAX
-kdir="${pkgdir}"/lib/modules/${kver}/kernel/fs/${_realname}
-pkgrel=2
+pkgrel=3
 url="http://www.squashfs-lzma.org"
 pkgdesc="A highly compressed read-only filesystem for Linux."
 depends=('zlib')
@@ -22,8 +20,8 @@ md5sums=('fc7a12a396ade1772e959604d6eb31e1'
          '471b400d0a46412012b9093f525fba61')
 build()
 {
+	source "${startdir}"/../kernel.env
 	cd "${srcdir}"
-	ls > foo
 	echo "applying sqlzma2u-3.4.patch"
 	patch -p0 < ${srcdir}/sqlzma2u-3.4.patch || return 1
 
@@ -38,16 +36,16 @@ build()
 	cd "${srcdir}" || return 1
 	
 	echo "sed Makefile"
-	sed -i "s|KDir =.*|KDir = "${startdir}"/../kernel26slax/src/linux-2.6.27|" Makefile || return 1
-	sed -i "s|SqFs =.*|SqFs = "${startdir}"/../kernel26slax/src/linux-2.6.27/fs/squashfs|" Makefile || return 1
+	sed -i "s|KDir =.*|KDir = "${_kerndir}"|" Makefile || return 1
+	sed -i "s|SqFs =.*|SqFs = "${_kerndir}"/fs/squashfs|" Makefile || return 1
 	sed -i "s/LzmaVer =.*/LzmaVer = ./" Makefile || return 1
-	#sed -i "s/C=1/C=0/" Makefile || return 1
+	sed -i "s/C=1/C=0/" Makefile || return 1
 	
 	echo "Compiling"
 	make || return 1
 	
 	echo "Installing files"
-	mkdir -p "${kdir}"
-	install -D -m 644 "${startdir}"/../kernel26slax/src/linux-2.6.27/fs/squashfs/squashfs.ko "${kdir}"
-	install -D -m 644 C/Compress/Lzma/kmod/{un,sq}lzma.ko "${kdir}"
+	mkdir -p "${pkgdir}"/lib/modules/${_kernver}/fs/${_realname}
+	install -D -m644 "${_kerndir}"/fs/squashfs/squashfs.ko "${pkgdir}"/lib/modules/${_kernver}/fs/${_realname}
+	install -D -m644 C/Compress/Lzma/kmod/{un,sq}lzma.ko "${pkgdir}"/lib/modules/${_kernver}/fs/${_realname}
 }
