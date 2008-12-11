@@ -11,6 +11,6 @@ post_remove() {
 }
 
 _depmod() {
-  KERNEL_VERSION='2.6.27'
+  KERNEL_VERSION='2.6.27.8-chaox'
   depmod -a $KERNEL_VERSION
 }

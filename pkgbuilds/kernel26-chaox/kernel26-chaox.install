@@ -1,7 +1,7 @@
 # arg 1:  the new package version
 # arg 2:  the old package version
 
-KERNEL_VERSION=2.6.27.8-SLAX
+KERNEL_VERSION=2.6.27.8-chaox
 
 post_install () {
   # updating module dependencies

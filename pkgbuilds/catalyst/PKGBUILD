@@ -15,9 +15,9 @@ replaces=('ati-fglrx' 'fglrx') # Yay rebranding
 install=${pkgname}.install
 source=(http://www2.ati.com/drivers/linux/ati-driver-installer-${pkgver/./-}-x86.x86_64.run)
 md5sums=('2a62d8c5173f091379e458371782a580')
-_kernver=2.6.27.8-SLAX
 
 build() {
+    source "${startdir}"/../kernel.env
     cd "${srcdir}"
 
     [ "$CARCH" = "i686" ] && _arch="x86"
@@ -37,10 +37,11 @@ build() {
     fi
     cd "${srcdir}"
     cd "${srcdir}"/lib/modules/fglrx/build_mod/
+    echo foo
     #patch -Np1 -i $srcdir/2.6.27.patch ||return 1
     # Build the kernel module
     cp 2.6.x/Makefile .
-    make -C $startdir/../kernel26slax/src/linux-2.6.27 SUBDIRS="`pwd`" ARCH=$BUILDARCH modules || return 1
+    make -C $_kerndir SUBDIRS="`pwd`" ARCH=$BUILDARCH modules || return 1
 
     # Install the kernel module
     install -m 644 -D "${srcdir}"/lib/modules/fglrx/build_mod/fglrx.ko \

@@ -1,12 +1,12 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Nils Christopher Brause <mastercpp@gmx.net>
 pkgname=madwifi-newhal-svn
 pkgver=3879
-pkgrel=10
+pkgrel=11
 pkgdesc="Madwifi drivers for Atheros wireless chipsets. HAL 0.10.5.6 branch. For stock arch 2.6 kernel."
 arch=(i686 x86_64)
 url="http://madwifi.org/"
 license=('GPL')
-depends=('kernel26slax')
 makedepends=('subversion' 'make' 'gcc')
 provides=("madwifi")
 conflicts=("madwifi")
@@ -14,13 +14,13 @@ source=(http://patches.aircrack-ng.org/madwifi-ng-r3745.patch)
 md5sums=(4b7b1d8836245070491fd521b0014ee0)
 install=$pkgname.install
 
-_kernver=2.6.27.8-SLAX;
 _svntrunk=http://svn.madwifi.org/madwifi/branches/madwifi-hal-0.10.5.6
 _svnmod=madwifi
 
 build()
 {
-  cd ${srcdir}
+  source "${startdir}"/../kernel.env
+  cd "${srcdir}"
   if [ -d $_svnmod/.svn ]; then
     msg "svn update.."
     cd $_svnmod
@@ -32,6 +32,6 @@ build()
   fi
 
   msg "make install-modules.."
-  patch -Np1 -i $srcdir/madwifi-ng-r3745.patch || return 1
-  KERNELPATH=$startdir/../kernel26slax/src/linux-2.6.27 KERNELRELEASE=$_kernver DESTDIR=${pkgdir} make install-modules || return 1
+  patch -Np1 -i "${srcdir}"/madwifi-ng-r3745.patch || return 1
+  KERNELPATH="${_kerndir}" KERNELRELEASE=$_kernver DESTDIR="${pkgdir}" make install-modules || return 1
 }
