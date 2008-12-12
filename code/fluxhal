@@ -2,13 +2,34 @@
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 import gobject
+import pynotify
+
+#print dir(pynotify)
+def mount():
+	print "Now your device could be mounted"
+
+def nomount():
+	print "Device is not mounted"
+
 
 def Responder(device_udi):
     print device_udi
-
+    device_object = dbus_system_bus.get_object('org.freedesktop.Hal', device_udi)
+    device_interface = dbus.Interface(device_object, 'org.freedesktop.Hal.Device')
+    if device_interface.PropertyExists('volume.uuid'):
+		print "\nfound a volume or partition at %s \n" % device_interface.GetProperty('block.device')
+		pynotify.init( "FluxHal" )
+		n = pynotify.Notification('Found Volume', 'Found a volume or partition on '+device_interface.GetProperty('block.device'), 'system-file-manager')
+		n.set_urgency(pynotify.URGENCY_NORMAL)
+		n.set_timeout(pynotify.EXPIRES_NEVER)
+		n.add_action("clicked","Mount", mount, None)
+		n.add_action("clicked","or not Mount", nomount, None)
+		n.show()
+        
 DBusGMainLoop(set_as_default=True)
 dbus_session_bus = dbus.SessionBus()
 dbus_system_bus = dbus.SystemBus()
+
 
 hal_object = dbus_system_bus.get_object('org.freedesktop.Hal','/org/freedesktop/Hal/Manager')
 hal_interface = dbus.Interface(hal_object, 'org.freedesktop.Hal.Manager')
