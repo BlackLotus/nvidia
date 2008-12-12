@@ -9,7 +9,7 @@ run_hook ()
     /bin/mkdir -p /bootmnt
     bootmnt="/bootmnt"
     found=0
-
+    modprobe ext2
     for usb in /dev/sd[a-z][0-9]; do
         if mount -r -t vfat "${usb}" ${bootmnt} >/dev/null 2>&1 ||\
             mount -r -t ext2 "${usb}" ${bootmnt} >/dev/null 2>&1; then
