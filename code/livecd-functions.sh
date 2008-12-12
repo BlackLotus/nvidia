@@ -1,4 +1,14 @@
-alias makesqfs="cd /pub/livecd/source && sed -i "s/localhost/hansmaulwurf.is-a-geek.org/" etc/pacman.conf && time mksquashfs . ../target/archlive.sqfs -ef ../exclude -wildcards -noappend -sort ../load.order.new && sed -i "s/hansmaulwurf.is-a-geek.org/localhost/" etc/pacman.conf"
+makesqfs() {
+	mount-chroot
+	chroot source /bin/bash --login <<CHROOTED
+	sed -i "s/ftp:\/\/localhost\/livecd-pkg/https:\/\/dev-jenux.homelinux.org\/chaox-repo/" /etc/pacman.conf
+	depmod -a $(ls /pub/livecd/source/lib/modules/)
+CHROOTED
+	umount-chroot
+	cd source
+	time mksquashfs . ../target/archlive.sqfs -ef ../exclude -wildcards -noappend -sort ../load.order.new
+	sed -i "s/https:\/\/dev-jenux.homelinux.org\/chaox-repo/ftp:\/\/localhost\/livecd-pkg/" etc/pacman.conf
+}
 makelivecd() {
 	mount-chroot
 	chroot source /bin/bash --login <<CHROOTED
