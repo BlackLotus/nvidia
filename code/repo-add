@@ -257,11 +257,15 @@ db_remove_entry() {
 	local existing
 	for existing in *; do
 		if [ "${existing%-*-*}" = "$1" ]; then
-			uglypath="${startdir}/"$(echo $arg|awk -F$1 {'print $1'})
+			uglypath=$(echo $arg|awk -F$1 {'print $1'})
 			tmpdir="/tmp/oldpkg-$("whoami")"
 			mkdir $tmpdir 2> /dev/null
       			msg2 "$(gettext "Moving existing package '%s-%s.pkg.tar.gz' to '%s'...")" "$existing" "$CARCH" "$tmpdir"
-			mv "$uglypath/$existing-$CARCH.pkg.tar.gz" $tmpdir
+			if [ -e "$uglypath/$existing-$CARCH.pkg.tar.gz" ];then
+				mv "$uglypath/$existing-$CARCH.pkg.tar.gz" $tmpdir
+			else
+				mv "${startdir}/$uglypath/$existing-$CARCH.pkg.tar.gz" $tmpdir
+			fi
 			msg2 "$(gettext "Removing existing package '%s'...")" "$existing"
 			rm -rf "$existing"
 		fi
