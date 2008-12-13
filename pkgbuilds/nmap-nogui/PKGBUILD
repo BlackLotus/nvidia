@@ -2,12 +2,12 @@
 # Contributor: Hugo Doria <hugo@archlinux.org>
 pkgname=nmap-nogui
 pkgver=4.76
-pkgrel=1
+pkgrel=2
 pkgdesc="A network exploration tool and security/port scanner"
 arch=('i686' 'x86_64')
 url="http://nmap.org"
 license=('custom:GPL')
-depends=('pcre' 'openssl' 'libpcap>=0.9.8' 'lua')
+depends=('pcre' 'openssl' 'libpcap>=1.0.0' 'lua')
 options=('!makeflags')
 conflicts=("nmap")
 source=(http://download.insecure.org/nmap/dist/nmap-${pkgver}.tgz)
