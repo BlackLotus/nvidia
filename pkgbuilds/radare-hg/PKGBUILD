@@ -1,3 +1,4 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor Shino <shino@jenux.homelinux.org>
 pkgname="radare-hg"
 pkgver=708
@@ -15,7 +16,7 @@ md5sums=()
 _hgurl="http://radare.org/hg/radare"
 
 build() {
-	cd $startdir/src
+	cd "${srcdir}"
 	
 	msg "Source checkout..."
 	hg clone $_hgurl
@@ -30,5 +31,5 @@ build() {
 	./waf build || return 1
 
 	msg "Installing..."
-	./waf --destdir=${startdir}/pkg/ install || return 1
+	./waf --destdir="${pkgdir}" install || return 1
 }
