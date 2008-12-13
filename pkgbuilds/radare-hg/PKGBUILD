@@ -2,7 +2,7 @@
 # Contributor Shino <shino@jenux.homelinux.org>
 pkgname="radare-hg"
 pkgver=708
-pkgrel=2
+pkgrel=3
 pkgdesc="A collection of tools with the aim to create a complete, portable, multi-architecture, unix-like toolchain for reverse engineering."
 arch=('i686' 'x86_64')
 url="http://radare.nopcode.org"
@@ -25,11 +25,12 @@ build() {
 	cd radare
 
 	msg "Configuring..."
-	./waf configure --without-gui --without-lua --without-ruby || return 1
+	./configure --without-gui --without-vala INSTALL=/bin/install PREFIX=/usr || return 1
 
 	msg "Building..."
-	./waf build || return 1
+	make || return 1
+	make || return 1 # DONT ASK!
 
 	msg "Installing..."
-	./waf install --destdir="${pkgdir}" || return 1
+	make DESTDIR="${pkgdir}" install || return 1
 }
