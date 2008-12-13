@@ -9,8 +9,8 @@ url="http://radare.nopcode.org"
 license=('GPL2')
 depends=('python' 'lua' 'vte' 'bash' 'perl')
 makedepends=('mercurial')
-provides="radare"
-conflicts="radare"
+provides=("radare")
+conflicts=("radare")
 source=()
 md5sums=()
 
