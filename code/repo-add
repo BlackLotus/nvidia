@@ -111,7 +111,6 @@ db_write_delta()
 	local deltafile=$($realpath "$1")
 	local filename=$(basename "$deltafile")
 	local deltavars pkgname fromver tover arch csize md5sum
-
 	# format of the delta filename:
 	# (package)-(fromver)_to_(tover)-(arch).delta
 	deltavars=( $(echo "$filename" | sed -e 's/\(.*\)-\(.*-.*\)_to_\(.*-.*\)-\(.*\).delta/\1 \2 \3 \4/') )
@@ -119,7 +118,6 @@ db_write_delta()
 	fromver=${deltavars[1]}
 	tover=${deltavars[2]}
 	arch=${deltavars[3]}
-
 	# get md5sum and size of delta
 	md5sum="$(md5sum "$deltafile" | cut -d ' ' -f 1)"
 	csize=$(stat -c %s "$deltafile")
@@ -130,7 +128,6 @@ db_write_delta()
 	fi
 
 	# add the entry for this delta file
-	echo -e "$fromver $tover $csize $filename $md5sum" >>deltas
 } # end db_write_delta
 
 
@@ -260,10 +257,11 @@ db_remove_entry() {
 	local existing
 	for existing in *; do
 		if [ "${existing%-*-*}" = "$1" ]; then
+			uglypath=$arg|awk -F$existing {'print $1'}
 			tmpdir="/tmp/oldpkg-$("whoami")"
 			mkdir $tmpdir 2> /dev/null
-                        msg2 "$(gettext "Moving existing package '%s-%s.pkg.tar.gz' to '%s'...")" "$existing" "$CARCH" "$tmpdir"
-			mv $startdir/$existing-$CARCH.pkg.tar.gz $tmpdir
+      msg2 "$(gettext "Moving existing package '%s-%s.pkg.tar.gz' to '%s'...")" "$existing" "$CARCH" "$tmpdir"
+			mv $uglypath/$existing-$CARCH.pkg.tar.gz $tmpdir
 			msg2 "$(gettext "Removing existing package '%s'...")" "$existing"
 			rm -rf "$existing"
 		fi
