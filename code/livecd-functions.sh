@@ -3,8 +3,11 @@ makesqfs() {
 	chroot source /bin/bash --login <<CHROOTED
 	sed -i "s/ftp:\/\/localhost\/livecd-pkg/https:\/\/dev-jenux.homelinux.org\/chaox-repo/" /etc/pacman.conf
 	depmod -a $(ls /pub/livecd/source/lib/modules/)
+	pacman -Q > package.lst
 CHROOTED
 	umount-chroot
+	mv source/package.lst target/
+	bzip -9 target/package.lst
 	cd source
 	time mksquashfs . ../target/archlive.sqfs -ef ../exclude -wildcards -noappend -sort ../load.order.new
 	sed -i "s/https:\/\/dev-jenux.homelinux.org\/chaox-repo/ftp:\/\/localhost\/livecd-pkg/" etc/pacman.conf
