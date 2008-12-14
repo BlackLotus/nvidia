@@ -1,0 +1,20 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+pkgname=chaox-wallpaper
+pkgver=1
+pkgrel=1
+pkgdesc="A nice wallpaper for chaox"
+arch=("i686")
+url="http://jenux.homelinux.org/~shino/dango-chaox.svg"
+license=('LGPL')
+provides=("kdemod-kdebase-workspace-wallpapers")
+source=(http://jenux.homelinux.org/~shino/dango-chaox.svg metadata.desktop)
+md5sums=('238036fbc9e04b31cb09899460634969'
+         '1473e6bdb68aff4d05be9532efeabde7')
+build() {
+  cd "${srcdir}"
+  mkdir -p "${pkgdir}"/usr/share/wallpapers/dango-chaox/contents/images/
+  install -m 644 dango-chaox.svg "${pkgdir}"/usr/share/wallpapers/dango-chaox/contents/images/
+  install -m 644 metadata.desktop "${pkgdir}"/usr/share/wallpapers/dango-chaox
+}
+
+# vim:set ts=2 sw=2 et:
