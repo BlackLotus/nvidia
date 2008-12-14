@@ -1,9 +1,8 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Baechler <thomas@archlinux.org>
-
 pkgname=nvidia
 pkgver=177.82
-pkgrel=6
+pkgrel=7
 pkgdesc="NVIDIA drivers for kernel26."
 arch=('i686' 'x86_64')
 [ "$CARCH" = "i686"   ] && ARCH=x86

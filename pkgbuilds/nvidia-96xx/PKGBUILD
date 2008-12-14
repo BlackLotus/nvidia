@@ -1,9 +1,8 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Tobias Powalowski <tpowa@archlinux.org>
-
 pkgname=nvidia-96xx
 pkgver=96.43.07
-pkgrel=10
+pkgrel=11
 pkgdesc="NVIDIA legacy drivers for kernel26, 96xx branch"
 arch=(i686 x86_64)
 license=('custom:NVIDIA')

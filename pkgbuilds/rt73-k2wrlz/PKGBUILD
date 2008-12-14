@@ -1,7 +1,8 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 pkgname=rt73-k2wrlz
 pkgver=3.0.2
 pkgdesc="RaLink RT73 USB Enhanced Driver"
-pkgrel=4
+pkgrel=5
 arch=('i686')
 license=("GPL2")
 url="http://homepages.tu-darmstadt.de/~p_larbig/wlan/"
