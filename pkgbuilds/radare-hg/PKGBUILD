@@ -2,7 +2,7 @@
 # Contributor Shino <shino@jenux.homelinux.org>
 pkgname="radare-hg"
 pkgver=711
-pkgrel=3
+pkgrel=1
 pkgdesc="A collection of tools with the aim to create a complete, portable, multi-architecture, unix-like toolchain for reverse engineering."
 arch=('i686' 'x86_64')
 url="http://radare.nopcode.org"
