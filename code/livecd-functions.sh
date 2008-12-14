@@ -8,7 +8,7 @@ makesqfs() {
 CHROOTED
 	umount-chroot
 	mv source/package.lst target/
-	bzip2 -9 target/package.lst
+	bzip2 -f -9 target/package.lst
 	cd source
 	time mksquashfs . ../target/archlive.sqfs -ef ../exclude -wildcards -noappend -sort ../load.order.new
 	sed -i "s/https:\/\/dev-jenux.homelinux.org\/chaox-repo/ftp:\/\/localhost\/livecd-pkg/" etc/pacman.conf
