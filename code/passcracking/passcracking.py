@@ -5,13 +5,19 @@ import re
 import urllib
 
 """HashFinder is a modul to find hashes of md5 and lm.
-It uses milw0rm.com and passcracking.ru/com"""
+It uses milw0rm.com and passcracking.ru/com
+milw0rm for lm and md5 passcracking only for md5"""
 
 class UnknownHashFormat(Exception):
     pass
 
 class HashNotFound(Exception):
     pass
+
+def usage():
+	print '\npasscracking - by BlackLotus and Touki\nhttp://github.com/jensp/chaox-ng-livecd/\n'
+	print 'Usage:'
+	print 'passcracking hash1 hash2 hash3 ...'
 
 def validate(hash):
     if len(hash) == 32:
@@ -62,7 +68,10 @@ def crack(hash):
             return a,b
 
 if __name__ == '__main__':
+    if len(sys.argv)==1:
+        usage()
     for hashid in range(1,len(sys.argv)):
+        print 'Test'
         hash=sys.argv[hashid]
         try:
             (the,password)=crack(hash)
@@ -72,3 +81,4 @@ if __name__ == '__main__':
             print '%s not found' % hash
         else:
             print '%s=%s' % (hash, password)
+
