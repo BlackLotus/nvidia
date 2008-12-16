@@ -71,7 +71,6 @@ if __name__ == '__main__':
     if len(sys.argv)==1:
         usage()
     for hashid in range(1,len(sys.argv)):
-        print 'Test'
         hash=sys.argv[hashid]
         try:
             (the,password)=crack(hash)
