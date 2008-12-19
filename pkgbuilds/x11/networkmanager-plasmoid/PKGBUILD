@@ -1,6 +1,6 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 pkgname=networkmanager-plasmoid
-pkgver=879373
+pkgver=898969
 pkgrel=1
 license=("GPL")
 arch=(i686 x86_64)
