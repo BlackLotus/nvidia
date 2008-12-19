@@ -291,14 +291,6 @@ if [ "$HOSTNAME" != "" ]; then
 	status "Setting Hostname: $HOSTNAME" /bin/hostname $HOSTNAME
 fi
 
-# Set the NIS domain name, if necessary
-#[ -f /etc/conf.d/nisdomainname ] && . /etc/conf.d/nisdomainname
-#if [ "$NISDOMAINNAME" != "" ]; then
-	status "Setting NIS Domain Name: $NISDOMAINNAME" /bin/nisdomainname $NISDOMAINNAME
-#fi
-
-#status "Updating Module Dependencies" /sbin/depmod -A
-
 # Flush old locale settings
 : >/etc/profile.d/locale.sh
 /bin/chmod 755 /etc/profile.d/locale.sh
