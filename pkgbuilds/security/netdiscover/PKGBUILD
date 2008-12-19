@@ -20,7 +20,7 @@ md5sums=('0919227a91ecaeeb2443cff249417be2')
 
 build() {
 	cd "${srcdir}"/$pkgname-$pkgver-beta6
-	./configure --prefix=/usr --sysconfdir=/etc/
+	./configure --prefix=/usr --sysconfdir=/etc/ --mandir=/usr/share/man
 	make || return 1
 	make DESTDIR="${pkgdir}" install || return 1
 

@@ -8,7 +8,7 @@ pkgdesc='The multimedia API for KDE 4'
 arch=('i686' 'x86_64')
 url='http://phonon.kde.org'
 license=('LGPL')
-depends=('qt>=4.4' 'alsa-lib')
+depends=('qt>=4.4')
 makedepends=('pkgconfig' 'cmake' 'automoc4')
 source=("ftp://ftp.kde.org/pub/kde/stable/phonon/${pkgver}/phonon-${pkgver}.tar.bz2")
 md5sums=('de80b0f055886a6946acc7886713e23e')

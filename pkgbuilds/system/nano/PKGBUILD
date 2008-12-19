@@ -8,7 +8,6 @@ arch=('i686' 'x86_64')
 license=('GPL')
 url="http://www.nano-editor.org"
 groups=('base')
-depends=('glibc' 'ncurses')
 source=(http://www.nano-editor.org/dist/v2.0/nano-${pkgver}.tar.gz)
 backup=(etc/nanorc)
 md5sums=('2be94dc43fb60fff4626a2401a977220')
