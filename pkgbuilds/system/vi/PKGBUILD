@@ -1,7 +1,8 @@
-# Maintainer: tobias [ tobias at archlinux org ]
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: tobias [ tobias at archlinux org ]
 pkgname=vi
 _srcver=7.2
-_patchlevel=22
+_patchlevel=69
 pkgver=${_srcver}.${_patchlevel}
 pkgrel=1
 pkgdesc="a highly configurable, improved version of the vi text editor (basic version)"
@@ -26,10 +27,10 @@ md5sums=('f0901284b338e448bfd79ccca0041254'
 build()
 {
   # pull in patches from vim.org (or the src cache alternatively)
-  . ${startdir}/src/fetch_patches.sh
-  . ${startdir}/src/fetch_runtime.sh
+  . "${srcdir}"/fetch_patches.sh
+  . "${srcdir}"/fetch_runtime.sh
   get_patches || return 1
-  cd ${startdir}/src/vim$(echo ${_srcver} | sed "s/\.//")
+  cd "${srcdir}"/vim$(echo ${_srcver} | sed "s/\.//")
   # set the virc different from vimrc
   sed -i 's|^.*\(#define SYS_VIMRC_FILE.*"\) .*$|\1|' src/feature.h
   sed -i 's|^.*\(#define VIMRC_FILE.*"\) .*$|\1|' src/feature.h
@@ -42,20 +43,20 @@ build()
     --with-global-runtime=/usr/share/vim --with-vim-name=vi \
     --disable-gpm --disable-acl --with-x=no --disable-gui --enable-multibyte
   make || return 1
-  make  VIMRCLOC=/etc DESTDIR=${startdir}/pkg VIMRTDIR= install
-  cd ${startdir}/pkg/usr/bin
+  make  VIMRCLOC=/etc DESTDIR="${pkgdir}" VIMRTDIR= install
+  cd "${pkgdir}"/usr/bin
   rm -f vim rvim view rview
   ln -s vi evi
 
-  _runtimedir="${startdir}/pkg/usr/share/vim/"
+  _runtimedir=""${pkgdir}"/usr/share/vim/"
   update_runtime
   # kill vim and x specific stuff
   sed -i '/vms/,+4 d;/Convenient command/,+3 d;/mouse work/,+2 d'\
-    ${startdir}/pkg/usr/share/vim/vimrc_example.vim
-  install -Dm644 ${startdir}/pkg/usr/share/vim/vimrc_example.vim \
-    ${startdir}/pkg/etc/virc
-  rm -f ${startdir}/pkg/usr/share/vim/gvimrc_example.vim
-  install -dm755 ${startdir}/pkg/usr/share/licenses/vim
-  cd ${startdir}/pkg/usr/share/licenses/vim
+    "${pkgdir}"/usr/share/vim/vimrc_example.vim
+  install -Dm644 "${pkgdir}"/usr/share/vim/vimrc_example.vim \
+    "${pkgdir}"/etc/virc
+  rm -f "${pkgdir}"/usr/share/vim/gvimrc_example.vim
+  install -dm755 "${pkgdir}"/usr/share/licenses/vim
+  cd "${pkgdir}"/usr/share/licenses/vim
   ln -s ../../vim/doc/uganda.txt license.txt
 }

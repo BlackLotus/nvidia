@@ -1,9 +1,9 @@
-# $Id: PKGBUILD 3030 2008-06-18 02:41:30Z eric $
-# Maintainer: tobias [ tobias at archlinux org ]
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: tobias [ tobias at archlinux org ]
 
 pkgname=vim
 _srcver=7.2
-_patchlevel=22
+_patchlevel=69
 pkgver=${_srcver}.${_patchlevel}
 pkgrel=1
 pkgdesc="a highly configurable, improved version of the vi text editor"
@@ -26,9 +26,9 @@ md5sums=('f0901284b338e448bfd79ccca0041254'
 build()
 {
   # pull in patches from vim.org (or the src cache alternatively)
-  . ${startdir}/src/fetch_patches.sh
+  . "${srcdir}"/fetch_patches.sh
   get_patches || return 1
-  cd ${startdir}/src/vim$(echo ${_srcver} | sed "s/\.//")
+  cd "${srcdir}"/vim$(echo ${_srcver} | sed "s/\.//")
   sed -i 's|^.*\(#define SYS_.*VIMRC_FILE.*"\) .*$|\1|' src/feature.h
   # build party
   ./configure --prefix=/usr --localstatedir=/var/lib/vim --mandir=/usr/share/man \
@@ -38,13 +38,13 @@ build()
     --enable-multibyte --enable-cscope \
     --enable-perlinterp --enable-pythoninterp --enable-rubyinterp
   make || return 1
-  make  VIMRCLOC=/etc DESTDIR=${startdir}/pkg VIMRTDIR= install
-  cd ${startdir}/pkg/usr/bin
+  make  VIMRCLOC=/etc DESTDIR="${pkgdir}" VIMRTDIR= install
+  cd "${pkgdir}"/usr/bin
   rm -f ex view rview xxd vimtutor
   ln -s vitutor vimtutor
 
    # delete the manpages/symlinks provided by vi package
-  find ${startdir}/pkg/usr/share/man -type d -name 'man1' 2> /dev/null | \
+  find "${pkgdir}"/usr/share/man -type d -name 'man1' 2> /dev/null | \
    while read mandir; do
     cd ${mandir}
     rm -f *.1
@@ -55,9 +55,9 @@ build()
   done
 
   # kill the nobackup parts
-  sed -i '/vms/,+4 d' ${startdir}/pkg/usr/share/vim/vimrc_example.vim
-  install -Dm644 ${startdir}/pkg/usr/share/vim/vimrc_example.vim \
-    ${startdir}/pkg/etc/vimrc
+  sed -i '/vms/,+4 d' "${pkgdir}"/usr/share/vim/vimrc_example.vim
+  install -Dm644 "${pkgdir}"/usr/share/vim/vimrc_example.vim \
+    "${pkgdir}"/etc/vimrc
   # clean all settings and controls -  served by vi package
-  rm -rf ${startdir}/pkg/usr/share/vim
+  rm -rf "${pkgdir}"/usr/share/vim
 }
