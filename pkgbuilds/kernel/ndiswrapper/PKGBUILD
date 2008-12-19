@@ -1,8 +1,8 @@
-#Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
-#Contributor: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
 pkgname=ndiswrapper
 pkgver=1.53
-pkgrel=14
+pkgrel=15
 pkgdesc="Module for NDIS (Windows Network Drivers) drivers supplied by vendors. For stock arch 2.6 kernel."
 license=('GPL')
 arch=(i686 x86_64)

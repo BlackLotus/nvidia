@@ -2,7 +2,7 @@
 # Based on the work of godane <slaxemulator@gmail.com>
 pkgname=kernel26-chaox
 _basekernel=2.6.27
-pkgver=2.6.27.9
+pkgver=2.6.27.10
 pkgrel=1
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
@@ -32,7 +32,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 	http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.4-2.6.27.patch
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
-         '1a0b0c727fee22a4d2545276176ac089'
+         '82691ff96bff9b4fa19f91b69a9695f9'
          '58a574aff76100dad90f397b9c38af1d'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          '69c34c83c6f64570efa3bc65c39304c5'
@@ -77,7 +77,7 @@ build() {
   _kernver="$pkgver"${CONFIG_LOCALVERSION}""
   # load configuration
   #yes "" | make config
-  make menuconfig
+  #make menuconfig
   make bzImage modules || return 1
   mkdir -p "${pkgdir}"/{lib/modules,boot}
   make INSTALL_MOD_PATH="${pkgdir}" modules_install || return 1
