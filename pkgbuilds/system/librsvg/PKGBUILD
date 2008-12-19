@@ -7,7 +7,7 @@ pkgrel=1
 pkgdesc="SAX-based renderer for SVG files into a GdkPixbuf"
 arch=(i686 x86_64)
 license=('LGPL')
-depends=('gtk2>=2.14.3' 'libgsf>=1.14.8')
+depends=('gtk2>=2.14.3' 'libgsf>=1.14.8' 'python')
 makedepends=('perlxml' 'pkgconfig')
 options=('!libtool')
 url="http://librsvg.sourceforge.net/"

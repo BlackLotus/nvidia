@@ -9,7 +9,7 @@ pkgdesc="Library for manipulation of TIFF images"
 arch=('i686' 'x86_64')
 url="http://www.libtiff.org/"
 license=('custom')
-depends=('libjpeg' 'zlib')
+depends=('libjpeg' 'zlib' 'gcc-libs')
 options=('!libtool')
 source=(ftp://ftp.remotesensing.org/pub/libtiff/tiff-${pkgver}.tar.gz \
 	tiff2pdf-octal-printf.patch \
