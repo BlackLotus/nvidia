@@ -9,6 +9,7 @@ arch=('i686' 'x86_64')
 url="http://aufs.sourceforge.net/"
 license=('GPL2')
 makedepends=('cvs')
+depends=('bash')
 source=()
 options=(!libtool !makeflags)
 md5sums=()
