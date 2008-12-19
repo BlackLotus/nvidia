@@ -1,13 +1,13 @@
-# $Id: PKGBUILD 17710 2008-10-31 21:32:33Z pierre $
-# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Pierre Schmitz <pierre@archlinux.de>
 
 pkgname=apr-util
 pkgver=1.3.4
-pkgrel=1
+pkgrel=1.1
 pkgdesc="The Apache Portable Runtime"
 arch=('i686' 'x86_64')
 url="http://apr.apache.org/"
-depends=('apr' 'expat' 'db' 'libldap' 'unixodbc')
+depends=('apr' 'expat' 'libldap' 'unixodbc')
 options=('!libtool')
 license=('APACHE')
 source=("http://www.apache.org/dist/apr/apr-util-${pkgver}.tar.bz2")
