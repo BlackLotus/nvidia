@@ -2,12 +2,12 @@
 # contributor: nofxx <x@nofxx.com>
 pkgname=aircrack-ng-svn
 pkgver=1286
-pkgrel=1
+pkgrel=4
 pkgdesc="Wifi security suite - WEP / WPA crack tools -- with SQLite3."
 arch=('i686' 'x86_64')
 url="http://www.aircrack-ng.org"
 license=('GPL2')
-depends=('openssl' 'sqlite3' 'wireless_tools' 'libtool')
+depends=('openssl' 'sqlite3' 'wireless_tools' 'libtool' 'zlib')
 makedepends=("subversion" "autoconf")
 provides=(aircrack-ng)
 conflicts=(aircrack-ng)
@@ -34,5 +34,5 @@ build() {
   # BUILD
   #
   make SQLITE=true || return 1
-  make prefix=/usr SQLITE=true DESTDIR=${pkgdir}/ install
+  make prefix=/usr SQLITE=true DESTDIR=${pkgdir}/ mandir=usr/share/man/man1/ install
 }

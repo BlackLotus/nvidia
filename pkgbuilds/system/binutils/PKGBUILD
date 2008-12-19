@@ -13,7 +13,7 @@ license=('GPL')
 groups=('base')
 options=('!libtool' '!distcc' '!ccache')
 makedepends=('texinfo')
-depends=('glibc>=2.9-1')
+depends=('zlib')
 source=(ftp://ftp.archlinux.org/other/${pkgname}/${pkgname}-${pkgver}_${_date}.tar.bz2)
 md5sums=('4a49694b08ef0e5931dba4813326d062')
 install=binutils.install
@@ -35,9 +35,9 @@ build() {
 
   CC="gcc -L`pwd`/bfd/.libs/"
   if [ "${CARCH}" = "x86_64" ]; then
-    ../configure --prefix=/usr --infodir=/usr/share/info --enable-shared --enable-64-bit-bfd --disable-multilib 
+    ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --enable-shared --enable-64-bit-bfd --disable-multilib 
   else
-    ../configure --prefix=/usr --infodir=/usr/share/info --enable-shared --without-included-gettext
+    ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --enable-shared --without-included-gettext
   fi
   # fix info files install path
   sed -i -e "s:infodir \= \/usr\/share:infodir \= ${pkgdir}\/usr\/share:" ${srcdir}/build/Makefile || return 1
