@@ -4,6 +4,10 @@ getarchver() {
 pkgver=0
 pkgrel=0
 eval $(curl -s "http://repos.archlinux.org/viewvc.cgi/"${pkgname}"/trunk/PKGBUILD?view=co" |egrep '(^pkgver|^pkgrel)')
+if [[ $pkgver == 0 && $pkgrel == 0 ]]
+then
+	eval $(curl -s "http://aur.archlinux.org/packages/"${pkgname}"/"${pkgname}"/PKGBUILD" |egrep '(^pkgver|^pkgrel)')
+fi
 _archpkgver=$pkgver
 _archpkgrel=$pkgrel
 }
