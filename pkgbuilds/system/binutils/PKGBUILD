@@ -4,7 +4,7 @@
 
 pkgname=binutils
 pkgver=2.19
-pkgrel=1
+pkgrel=2
 _date=20081119
 pkgdesc="A set of programs to assemble and manipulate binary and object files"
 arch=('i686' 'x86_64')

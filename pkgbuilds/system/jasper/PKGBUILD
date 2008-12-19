@@ -1,9 +1,9 @@
-# $Id: PKGBUILD 9007 2008-08-17 02:42:41Z eric $
-# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
 
 pkgname=jasper
 pkgver=1.900.1
-pkgrel=1
+pkgrel=2
 pkgdesc="a software-based implementation of the codec specified in the emerging JPEG-2000 Part-1 standard"
 arch=(i686 x86_64)
 url="http://www.ece.uvic.ca/~mdadams/jasper/"

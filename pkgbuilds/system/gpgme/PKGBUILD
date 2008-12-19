@@ -1,10 +1,10 @@
-# $Id: PKGBUILD 20183 2008-12-01 02:14:27Z eric $
-# Maintainer: Roman Kyrylych <roman@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Roman Kyrylych <roman@archlinux.org>
 # Contributor: Sarah Hay <sarah@archlinux.org>
 
 pkgname=gpgme
 pkgver=1.1.7
-pkgrel=2
+pkgrel=3
 pkgdesc="A C wrapper library for GnuPG."
 arch=('i686' 'x86_64')
 url="http://www.gnupg.org/related_software/gpgme/"

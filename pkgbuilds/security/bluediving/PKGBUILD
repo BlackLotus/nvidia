@@ -2,7 +2,7 @@
 # Contributer: Dawid Wrobel <cromo@klej.net>
 pkgname=bluediving
 pkgver=0.9
-pkgrel=1
+pkgrel=2
 pkgdesc="A Bluetooth penetration testing suite"
 url="http://bluediving.sourceforge.net/"
 license=('GPL')

@@ -3,7 +3,7 @@
 
 pkgname=gtkpod
 pkgver=0.99.12
-pkgrel=1
+pkgrel=2
 pkgdesc="a platform independent GUI for Apple's iPod using GTK2"
 arch=(i686 x86_64)
 license=('GPL')
