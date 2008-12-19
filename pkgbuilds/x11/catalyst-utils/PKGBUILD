@@ -12,8 +12,7 @@ arch=('i686' 'x86_64')
 url="http://www.ati.amd.com"
 license=('custom') 
 #finger required for acpi scripts
-depends=('xorg-server>=1.1.1' 'libdrm' 'libstdc++5' 'netkit-bsd-finger' \
-         'libxrandr' 'libsm' 'fontconfig' 'libxcursor' 'libxi' 'gcc-libs')
+depends=('xorg-server>=1.1.1' 'libstdc++5' 'netkit-bsd-finger' 'libxcursor')
 replaces=('ati-drivers' 'ati-fglrx-utils' 'fglrx-utils')
 conflicts=('libgl' 'ati-drivers-module' 'ati-drivers' 'nvidia') 
 provides=('libgl')
