@@ -9,7 +9,6 @@ arch=(i686 x86_64)
 license=('GPL' 'LGPL')
 groups=('base')
 url="http://gcc.gnu.org"
-depends=('glibc>=2.8-2')
 makedepends=('binutils>=2.18-9' 'gcc>=4.3.1' 'mpfr>=2.3.1' 'texinfo')
 options=('!libtool' '!emptydirs')
 source=(ftp://gcc.gnu.org/pub/gcc/releases/gcc-${pkgver}/gcc-{core,g++}-${pkgver}.tar.bz2

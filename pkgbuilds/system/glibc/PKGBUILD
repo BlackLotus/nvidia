@@ -13,7 +13,7 @@ arch=(i686 x86_64)
 license=('GPL' 'LGPL')
 url="http://www.gnu.org/software/libc"
 groups=('base')
-depends=('sh' 'kernel-headers>=2.6.27.6' 'tzdata')
+depends=('sh' 'kernel-headers>=2.6.27.6' 'tzdata' 'perl')
 makedepends=('gcc>=4.3.2-2')
 replaces=('glibc-xen')
 source=(ftp://ftp.archlinux.org/other/glibc/${pkgname}-${pkgver}_${_glibcdate}.tar.bz2
