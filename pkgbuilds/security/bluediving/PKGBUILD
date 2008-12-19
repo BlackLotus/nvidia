@@ -2,12 +2,12 @@
 # Contributer: Dawid Wrobel <cromo@klej.net>
 pkgname=bluediving
 pkgver=0.9
-pkgrel=2
+pkgrel=3
 pkgdesc="A Bluetooth penetration testing suite"
 url="http://bluediving.sourceforge.net/"
 license=('GPL')
 arch=('i686')
-depends=(bluez-utils sox obexftp openobex libxml2 perl)
+depends=(bluez-utils sox obexftp openobex libxml2 perl perl-xml-simple)
 makedepends=()
 install=bluediving.install
 source=(http://downloads.sourceforge.net/sourceforge/$pkgname/$pkgname-$pkgver.tgz)
