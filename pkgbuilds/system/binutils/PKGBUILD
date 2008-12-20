@@ -4,7 +4,7 @@
 
 pkgname=binutils
 pkgver=2.19
-pkgrel=2
+pkgrel=4
 _date=20081119
 pkgdesc="A set of programs to assemble and manipulate binary and object files"
 arch=('i686' 'x86_64')
@@ -37,7 +37,7 @@ build() {
   if [ "${CARCH}" = "x86_64" ]; then
     ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --enable-shared --enable-64-bit-bfd --disable-multilib 
   else
-    ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --enable-shared --without-included-gettext
+    ../configure --prefix=/usr --infodir=/usr/share/info --mandir="${pkgdir}"/usr/share/man --enable-shared --without-included-gettext
   fi
   # fix info files install path
   sed -i -e "s:infodir \= \/usr\/share:infodir \= ${pkgdir}\/usr\/share:" ${srcdir}/build/Makefile || return 1
