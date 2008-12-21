@@ -1,0 +1,89 @@
+# Omg! Hidden Dango! ( ||)
+
+# Quit if usplash is not running
+
+USPLASH=$(pidof usplash)
+
+[ "$USPLASH" ] || return 0
+
+# Progress Bar Stuff
+USPLASH_PROGRESS=0
+USPLASH_TOTALSTEPS=0
+USPLASH_CURRENTSTEP=0
+USPLASH_LAST=""
+
+usplash_multi() {
+	USPLASH_PROGRESS=1
+	for daemon in "${DAEMONS[@]}"; do
+		if [ "$daemon" = "${daemon#!}" ]; then
+			((USPLASH_TOTALSTEPS++))
+		fi
+	done
+}
+
+usplash_shutdown() {
+	USPLASH_PROGRESS=-1
+	USPLASH_TOTALSTEPS=$(/bin/ls /var/run/daemons | wc -l)
+	USPLASH_CURRENTSTEP=$USPLASH_TOTALSTEPS
+}
+
+make_progress() {
+    if [ $USPLASH_PROGRESS -ne 0 ]; then
+	    USPLASH_CURRENTSTEP=$(($USPLASH_CURRENTSTEP + $USPLASH_PROGRESS))
+	    [ $USPLASH_CURRENTSTEP -ge $USPLASH_TOTALSTEPS ] && USPLASH_CURRENTSTEP=$USPLASH_TOTALSTEPS
+	    [ $USPLASH_CURRENTSTEP -le 0 ] && USPLASH_CURRENTSTEP=0
+	    usplash_write "PROGRESS $(($USPLASH_CURRENTSTEP*100/$USPLASH_TOTALSTEPS))"
+    fi
+}
+
+# Text Printing Functions
+
+printhl() {
+    usplash_write "TEXT $1"
+}
+
+printsep() {
+    usplash_write "TEXT ------------------------------"
+}
+
+stat_bkgd() {
+    usplash_write "TEXT $1"
+    usplash_write "SUCCESS BKGD"
+}
+
+stat_busy() {
+    usplash_write "TEXT $1"
+}
+
+stat_done() {
+    usplash_write "SUCCESS OK"
+}
+
+stat_fail() {
+    usplash_write "FAILURE FAIL"
+}
+
+# Daemon Start/Stop/Check
+
+start_daemon() {
+    make_progress
+    /etc/rc.d/$1 start
+}
+
+start_daemon_bkgd() {
+    make_progress
+    stat_bkgd "Starting $1"
+    (/etc/rc.d/$1 start) &>/dev/null &
+}
+
+stop_daemon() {
+    [ "$USPLASH_LAST" != "$1" ] && make_progress
+    /etc/rc.d/$1 stop
+}
+
+ck_daemon() {
+	USPLASH_LAST="$1"
+	make_progress
+	[ -f /var/run/daemons/$1 ] && return 1
+	return 0
+}
