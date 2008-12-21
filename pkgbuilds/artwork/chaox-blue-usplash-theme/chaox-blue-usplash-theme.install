@@ -1,6 +1,6 @@
 post_install() {
     echo ">>> The theme has been installed in /usr/lib/usplash/chaox-blue-theme.so"
-    echo ">>> To use it do a 'ln -sf /lib/usplash-artwork.so /usr/lib/usplash/chaox-blue-theme.so'"
+    echo ">>> To use it do a 'ln -sf /usr/lib/usplash/chaox-blue-theme.so /lib/usplash-artwork.so'"
 }
 
 post_upgrade() {
