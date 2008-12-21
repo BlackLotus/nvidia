@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-utils
-pkgver=20081219
+pkgver=20081221
 _realname=aufs
 pkgrel=1
 pkgdesc="Another Unionfs Implementation. For using with arch-live kernel26slax."
@@ -54,7 +54,8 @@ build() {
 
   sed -i 's|export CONFIG_AUFS_STAT =|export CONFIG_AUFS_STAT = y|' \
     local.mk || return 1
-
+  # don't build static binaries
+  sed -i 's|aulchown: LDFLAGS += -s|aulchown:|g' util/Makefile ||return 1
   # build
   make KDIR=$startdir/../kernel26slax/src/linux-2.6.27 -f local.mk build_util|| return 1
 
@@ -62,7 +63,7 @@ build() {
   cd util ||return 1
   mkdir -p "${pkgdir}"/sbin
   mkdir -p "${pkgdir}"/etc/default
-  for x in {aufind.sh,mount.aufs,umount.aufs,auplink,aulchown,auchk}; do install -m 500 -p $x "${pkgdir}"/sbin/;done ||return 1
+  for x in {aufind.sh,mount.aufs,umount.aufs,auplink,aulchown,auchk}; do install -m 755 -p $x "${pkgdir}"/sbin/;done ||return 1
   install -m 500 -p etc_default_aufs "${pkgdir}"/etc/default/aufs ||return 1
   echo FLUSH=ALL > "${pkgdir}"/etc/default/auplink || return 1
 }
