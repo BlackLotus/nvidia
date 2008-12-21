@@ -11,7 +11,7 @@ depends=('usplash')
 makedepends=('make' 'gcc' 'sed')
 install="chaox-blue-usplash-theme.install"
 source=("http://jenux.homelinux.org/~shino/${pkgname}-$pkgver.tar.bz2")
-md5sums=()
+md5sums=('83d500d88c9732cd3e534b926f62539d')
 
 build() {
 	cd "${srcdir}/chaox-blue-usplash-theme"
