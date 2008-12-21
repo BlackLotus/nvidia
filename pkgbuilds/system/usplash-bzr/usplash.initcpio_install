@@ -1,0 +1,26 @@
+install ()
+{
+    if [ ! -f /lib/usplash-artwork.so ]; then
+	    echo "usplash: Theme Not Found"
+	    echo "usplash: expected theme in file /usr/lib/usplash/usplash-artwork.so"
+	    return
+    fi
+
+    BINARIES="usplash usplash_write"
+    SCRIPT="usplash"
+    if [ -f /etc/usplash.conf ]; then
+            add_file "/etc/usplash.conf"
+    fi
+    
+    add_file "/lib/usplash-artwork.so"
+}
+
+help ()
+{
+cat<<HELPEOF
+  Dango dango dango dango dango daikazoku
+  Dango dango dango dango dango daikazoku
+HELPEOF
+}
+
+# vim: set ft=sh:

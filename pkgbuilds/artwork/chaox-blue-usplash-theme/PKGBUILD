@@ -1,0 +1,21 @@
+# Maintainer: Shino <shino@jenux.homelinux.org>
+
+pkgname="chaox-blue-usplash-theme"
+pkgver="20081221"
+pkgrel="1"
+pkgdesc="simple, blue usplash theme"
+arch=('i686' 'x86_64')
+url="http://jenux.homelinux.org/"
+license=('GPL2')
+depends=('usplash')
+makedepends=('make' 'gcc' 'sed')
+install="chaox-blue-usplash-theme.install"
+source=("http://jenux.homelinux.org/~shino/${pkgname}-$pkgver.tar.bz2")
+md5sums=('83d500d88c9732cd3e534b926f62539d')
+
+build() {
+	cd "${srcdir}/chaox-blue-usplash-theme"
+
+	make || return 1
+	make DESTDIR="${pkgdir}" install || return 1
+}
