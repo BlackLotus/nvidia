@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
-# Linux kernel version: 2.6.27.8
-# Wed Dec 10 15:23:36 2008
+# Linux kernel version: 2.6.27.10
+# Sun Dec 21 20:07:30 2008
 #
 # CONFIG_64BIT is not set
 CONFIG_X86_32=y
@@ -1856,7 +1856,7 @@ CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH=y
 CONFIG_TOUCHSCREEN_USB_GOTOP=y
 # CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
 CONFIG_INPUT_MISC=y
-CONFIG_INPUT_PCSPKR=m
+# CONFIG_INPUT_PCSPKR is not set
 # CONFIG_INPUT_APANEL is not set
 CONFIG_INPUT_WISTRON_BTNS=m
 # CONFIG_INPUT_ATLAS_BTNS is not set

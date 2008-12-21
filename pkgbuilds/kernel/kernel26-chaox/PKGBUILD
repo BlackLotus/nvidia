@@ -3,7 +3,7 @@
 pkgname=kernel26-chaox
 _basekernel=2.6.27
 pkgver=2.6.27.10
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
 license=('GPL2')
@@ -33,7 +33,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 )
 md5sums=('b3e78977aa79d3754cb7f8143d7ddabd'
          '82691ff96bff9b4fa19f91b69a9695f9'
-         '58a574aff76100dad90f397b9c38af1d'
+         '1939e59003094710b9530c98f9db57a2'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          '69c34c83c6f64570efa3bc65c39304c5'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
@@ -76,7 +76,6 @@ build() {
   ### next line is only needed for rc kernels
   _kernver="$pkgver"${CONFIG_LOCALVERSION}""
   # load configuration
-  #yes "" | make config
   #make menuconfig
   make bzImage modules || return 1
   mkdir -p "${pkgdir}"/{lib/modules,boot}
