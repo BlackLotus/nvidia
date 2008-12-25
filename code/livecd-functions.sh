@@ -4,7 +4,7 @@ makesqfs() {
 	sed -i "s/ftp:\/\/localhost\/livecd-pkg/https:\/\/dev-jenux.homelinux.org\/chaox-repo/" /etc/pacman.conf
 	depmod -a $(ls /pub/livecd/source/lib/modules/)
 	pacman -Q > package.lst
-	sed -i 's/$c/$/g' /root/.bashrc
+	#sed -i 's/$c/$/g' /root/.bashrc
 CHROOTED
 	umount-chroot
 	mv source/package.lst target/
@@ -21,7 +21,7 @@ makelivecd() {
 CHROOTED
 	umount-chroot
 	cp -R /pub/livecd/source/boot/* /pub/livecd/target/boot/
-	time mkisofs -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot.catalog -o /pub/livecd/livecd-$(date +%F-%H-%M).iso -x files /pub/livecd/target/
+	time mkisofs -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot.catalog -o /pub/livecd/chaoxcd-$(date +%F-%H-%M).iso -x files /pub/livecd/target/
 }
 makeliveusb() {
 	# this function requires the archiso package to be installed
@@ -33,7 +33,7 @@ CHROOTED
         cp -R /pub/livecd/source/boot/* /pub/livecd/target/boot/
 	sed -i 's/(cd)/(hd0,0)/g' target/boot/grub/*.lst	
 	modprobe loop
-	mkusbimg /pub/livecd/target/ /pub/livecd/liveusb-$(date +%F-%H-%M).img
+	mkusbimg /pub/livecd/target/ /pub/livecd/chaoxusb-$(date +%F-%H-%M).img
 }	
 mount-chroot() {
 	cd /pub/livecd
