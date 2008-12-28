@@ -2,7 +2,7 @@
 # Contributor: Thomas Baechler <thomas@archlinux.org>
 pkgname=nvidia
 pkgver=177.82
-pkgrel=8
+pkgrel=9
 pkgdesc="NVIDIA drivers for kernel26."
 arch=('i686' 'x86_64')
 [ "$CARCH" = "i686"   ] && ARCH=x86
@@ -12,8 +12,9 @@ depends=('nvidia-utils')
 conflicts=('nvidia-96xx' 'nvidia-71xx' 'nvidia-legacy')
 license=('custom')
 install=nvidia.install
-source=(http://us.download.nvidia.com/XFree86/Linux-$ARCH/${pkgver}/NVIDIA-Linux-$ARCH-${pkgver}-pkg0.run)
-md5sums=('882f34a662f0175682fdc4a9bec909ba')
+source=(http://us.download.nvidia.com/XFree86/Linux-$ARCH/${pkgver}/NVIDIA-Linux-$ARCH-${pkgver}-pkg0.run 2.6.28.patch)
+md5sums=('882f34a662f0175682fdc4a9bec909ba'
+	 '0d4c7505aad85f7b0e0e84fc68568371')
 [ "$CARCH" = "x86_64" ] && md5sums=('bab63757e04eb3ee11129a281cb11afd')
 
 build()
@@ -25,9 +26,10 @@ build()
   cd NVIDIA-Linux-$ARCH-${pkgver}-pkg0
   
   # Any extra patches are applied in here...
-
+  patch -Np0 -i "${srcdir}"/2.6.28.patch || return 1
   cd usr/src/nv/
   ln -s Makefile.kbuild Makefile
+  echo dir: $_kerndir
   make SYSSRC="${_kerndir}" module || return 1
   
   # install kernel module

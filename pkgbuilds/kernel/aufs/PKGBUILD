@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs
-pkgver=20081219
+pkgver=20081227
 pkgrel=1
 pkgdesc="Another Unionfs Implementation. For using with arch-live kernel26slax."
 arch=('i686' 'x86_64')
@@ -65,7 +65,9 @@ build() {
 
   sed -i 's|export CONFIG_AUFS_STAT =|export CONFIG_AUFS_STAT = y|' \
     local.mk || return 1
-
+  
+  sed -i 's|export CONFIG_AUFS_DEBUG = y|export CONFIG_AUFS_DEBUG =|' \
+    local.mk || return 1
   #sed -i 's|CONFIG_AUFS_FSYNC_SUPER_PATCH =|CONFIG_AUFS_FSYNC_SUPER_PATCH = y|' \
   #  local.mk || return 1
   # build
