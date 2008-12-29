@@ -1,4 +1,5 @@
 # Contributor: icarus <icarus.roaming@gmail.com>
+# Contributor: Thomas Schneider <blacklotus@jenux.homelinux.org>
 pkgname=cowpatty
 pkgver=4.3
 pkgrel=1
@@ -8,7 +9,7 @@ url="http://www.churchofwifi.org/Project_Display.asp?PID=95"
 license=('GPL')
 depends=('openssl')
 source=("http://www.willhackforsushi.com/code/$pkgname/$pkgver/$pkgname-$pkgver.tgz" "cow.patch")
-md5sums=('deccac0763a05ef7014107d347bf9190')
+md5sums=('deccac0763a05ef7014107d347bf9190' '118bf4c19a1e1920cfe066ba6a2bfa02')
 
 build() {
   tar xfvz $pkgname-$pkgver.tgz
