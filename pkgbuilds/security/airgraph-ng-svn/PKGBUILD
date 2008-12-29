@@ -24,7 +24,7 @@ build() {
   msg "Starting make..."
   svn export $_svnmod $_svnmod-build
   cd $_svnmod-build
-  mkdir -p "${pkgdir}"{/usr/lib/python2.6/site-packages,/usr/bin}
+  mkdir -p "${pkgdir}"{/usr/lib/python2.6/site-packages/usr/bin}
   install -m 644 lib/lib_Airgraphviz.py "${pkgdir}"/usr/lib/python2.6/site-packages/ || return 1
   install -m 755 {airgraph-ng.py,dump-join.py} "${pkgdir}"/usr/bin/ || return 1
 }
