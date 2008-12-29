@@ -5,7 +5,7 @@
 
 pkgname=john
 pkgver=1.7.3.1
-pkgrel=1
+pkgrel=2
 pkgdesc="John the Ripper is a fast password cracker. Additional patches (NTLM, MySQL, Kerberos V5, etc.) included."
 arch=(i686 x86_64)
 url="http://www.openwall.com/$pkgname/"
@@ -22,28 +22,11 @@ build() {
 	patch -p1 < "${srcdir}"/$pkgname-1.7.3.1-all-5.diff || return 1
 	cd "${srcdir}"/john-$pkgver/src/
 
-	# patch default params
-	#patch -p0 < "${srcdir}"/params.h.patch
-	if [ "$CARCH" == "x86_64" ]; then
-	    sed -i 's|CFLAGS = -c -Wall -O2|CFLAGS = -c -Wall -O2 -march=x86-64 -DJOHN_SYSTEMWIDE=1|' Makefile
-	    sed -i 's|^LDFLAGS =\(.*\)|LDFLAGS =\1 -lm|' Makefile
-	    sed -i -e 's|-m486||g' Makefile
-	  else sed -i 's|CFLAGS = -c -Wall -O2|CFLAGS = -c -Wall -O2 -march=i686 -DJOHN_SYSTEMWIDE=1|' Makefile
-	fi
-	#sed -i 's|LIBS = -ldes|LIBS = -ldes -Ldes|' Makefile
-	#sed -i 's|#include <des.h>|#include "des/des.h"|' KRB5_fmt.c
-	#sed -i 's|#include <des.h>|#include "des/des.h"|' KRB5_std.h
+	sed -i 's|CFLAGS = -c -Wall -O2|CFLAGS = -c -Wall -O2 -march=i686 -DJOHN_SYSTEMWIDE=1|' Makefile
+	make linux-x86-mmx || return 1
 
-	# build john
-	if [ "$CARCH" == "x86_64" ]; then
-	    make linux-x86-64 || return 1
-	  else make linux-x86-mmx || return 1
-	fi
-
-	# config file
-	mkdir -p "${pkgdir}"/etc/john
 	sed -i 's|$JOHN|/usr/share/john|g' "${srcdir}"/john-$pkgver/run/john.conf
-	install -m644 "${srcdir}"/john-$pkgver/run/john.conf "${pkgdir}"/etc/john/john.conf
+	install -m644 "${srcdir}"/john-$pkgver/run/john.conf "${pkgdir}"/usr/share/john/john.ini
 	
 	# docs
 	mkdir -p "${pkgdir}"/usr/share/john/doc
@@ -53,13 +36,26 @@ build() {
 
 	# install binaries
 	mkdir -p "${pkgdir}"/usr/bin
-	if [ "$CARCH" == "x86_64" ]; then
-	    make linux-x86-64 || return 1
-	  else 	make linux-x86-mmx || return 1
-	fi
-	install -m755 "${srcdir}"/john-$pkgver/run/john "${pkgdir}"/usr/bin/john
+	make linux-x86-mmx || return 1
+	install -m755 "${srcdir}"/john-$pkgver/run/john "${pkgdir}"/usr/bin/john-mmx
 	install -m755 "${srcdir}"/john-$pkgver/run/mailer "${pkgdir}"/usr/bin/john-mailer
+	# now build again for sse2
+	cd "${srcdir}"/$pkgname-$pkgver/src
+	make clean || return 1
+	make linux-x86-sse2 || return 1
+	install -m755 "${srcdir}"/john-$pkgver/run/john "${pkgdir}"/usr/bin/john-sse2
 	cd "${pkgdir}"/usr/bin
+	# FIXME
+	cat >> john << EOF
+#!/bin/bash
+if grep -q sse2 /proc/cpuinfo
+then
+	john-sse2 $@
+else
+	john-mmx $@
+fi
+EOF
+	chmod 755 john
 	ln -s john unafs
 	ln -s john unique
 	ln -s john unshadow
