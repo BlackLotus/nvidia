@@ -3,7 +3,7 @@
 pkgname=kernel26-chaox
 _basekernel=2.6.28
 pkgver=2.6.28
-pkgrel=2
+pkgrel=3
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
 license=('GPL2')
@@ -34,7 +34,7 @@ source=(ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$_basekernel.tar.bz2
 )
 md5sums=('d351e44709c9810b85e29b877f50968a'
          '2fb27dd7baa16b0686047093ec5b2247'
-         '520005b129ca197946186df73790c496'
+         'b9e392ea95c22811def741c99e87f7d4'
          'e1cc3c48b5f52bb19b2b011bd488e065'
          '357b34ebef9998ee9beb711038681826'
          '69c34c83c6f64570efa3bc65c39304c5'
