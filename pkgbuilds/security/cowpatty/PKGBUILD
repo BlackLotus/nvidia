@@ -7,33 +7,14 @@ arch=('i686' 'x86_64')
 url="http://www.churchofwifi.org/Project_Display.asp?PID=95"
 license=('GPL')
 depends=('openssl')
-options=(docs)
-source=("http://www.willhackforsushi.com/code/$pkgname/$pkgver/$pkgname-$pkgver.tgz")
-#md5sums=('4a9d78de2fa3f45410136a75d438e763')
+source=("http://www.willhackforsushi.com/code/$pkgname/$pkgver/$pkgname-$pkgver.tgz" "cow.patch")
+md5sums=('deccac0763a05ef7014107d347bf9190')
 
 build() {
   tar xfvz $pkgname-$pkgver.tgz
-#  tar xzvf $pkgname-$pkgver.tgz
   cd "$startdir/src/$pkgname-$pkgver"
 
+  patch -Np0 -i ../cow.patch
   make || return 1
-
-#fakeroot + install is not properly setting owner right now, so chown is being used instead
-#this is slightly messy for removing pkgbuild files after build, I'll fix it when possible  
-  
-  chown root:root * 
-
-  install cowpatty -D $startdir/pkg/usr/bin/cowpatty -m 0665
-  install genpmk -D $startdir/pkg/usr/bin/genpmk -m 0665
-  install AUTHORS -D $startdir/pkg/usr/share/doc/cowpatty/AUTHORS -m 0664
-  install CHANGELOG -D $startdir/pkg/usr/share/doc/cowpatty/CHANGELOG -m 0664
-  install COPYING -D $startdir/pkg/usr/share/doc/cowpatty/COPYING -m 0664
-  install FAQ -D $startdir/pkg/usr/share/doc/cowpatty/FAQ -m 0664
-  install README -D $startdir/pkg/usr/share/doc/cowpatty/README -m 0664
-  install TODO -D $startdir/pkg/usr/share/doc/cowpatty/TODO -m 0664
-  install dict -D $startdir/pkg/usr/share/cowpatty/dict -m 0664
-  install eap-test.dump -D $startdir/pkg/usr/share/cowpatty/eap-test.dump -m 0664
-  install file_magic -D $startdir/pkg/usr/share/cowpatty/file_magic -m 0664
-  install wpa2psk-linksys.dump -D $startdir/pkg/usr/share/cowpatty/wpa2psk-linksys.dump -m 0664
-  install wpapsk-linksys.dump -D $startdir/pkg/usr/share/cowpatty/wpapsk-linksys.dump -m 0664
+  make DESTDIR="$pkgdir/" install || return 1
 }
