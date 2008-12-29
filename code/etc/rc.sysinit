@@ -174,7 +174,7 @@ if [ -e /proc/mounts ]; then
 	/bin/grep -e "/proc " -e "/sys " -e "/dev " /proc/mounts >> /etc/mtab
 fi
 # now mount all the local filesystems
-/bin/mount -a -t $NETFS
+/bin/mount -a
 stat_done
 
 status "Activating Swap" /sbin/swapon -a
