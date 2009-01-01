@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # contributor: nofxx <x@nofxx.com>
 pkgname=aircrack-ng-svn
-pkgver=1286
+pkgver=1306
 pkgrel=4
 pkgdesc="Wifi security suite - WEP / WPA crack tools -- with SQLite3."
 arch=('i686' 'x86_64')

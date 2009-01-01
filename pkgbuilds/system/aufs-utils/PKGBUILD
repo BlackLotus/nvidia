@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs-utils
-pkgver=20081221
+pkgver=20081222
 _realname=aufs
 pkgrel=1
 pkgdesc="Another Unionfs Implementation. For using with arch-live kernel26slax."
@@ -57,6 +57,7 @@ build() {
   # don't build static binaries
   sed -i 's|aulchown: LDFLAGS += -s|aulchown:|g' util/Makefile ||return 1
   # build
+  CC=/usr/bin/klcc
   make KDIR=$startdir/../kernel26slax/src/linux-2.6.27 -f local.mk build_util|| return 1
 
   # install
