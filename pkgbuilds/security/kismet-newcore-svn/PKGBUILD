@@ -8,8 +8,8 @@ url="http://www.kismetwireless.net/"
 license=('GPL')
 depends=('libpcap' 'libcap' 'libnl' 'pcre')
 makedepends=('subversion')
-provides=(kismet-newcore)
-conflicts=(kismet-newcore)
+provides=(kismet kismet-newcore)
+conflicts=(kismet kismet-newcore)
 source=()
 md5sums=() 
 
@@ -29,7 +29,13 @@ build() {
   msg "Starting make..."
   cd $_svnmod
   
+  # Building
   ./configure --prefix /usr/ --sysconfdir /etc/
   make || return 1
+
+  # Installing
   make DESTDIR="${pkgdir}" install || return 1
+
+  # Installing the headers (needed when compiling plugins)
+  find . -name '*.h' -exec install -D -m644 "{}" "${pkgdir}/usr/include/kismet/{}" \;
 }
