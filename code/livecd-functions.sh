@@ -39,6 +39,7 @@ mount-chroot() {
 	cd /pub/livecd
 	mount -o bind /dev/ /pub/livecd/source/dev/
 	mount -o bind /var/cache/pacman/pkg /pub/livecd/source/var/cache/pacman/pkg
+	mount -o bind /sys /pub/livecd/source/sys
 	mount -t proc none /pub/livecd/source/proc
 }
 umount-chroot() {
@@ -46,6 +47,7 @@ umount-chroot() {
         umount /pub/livecd/source/dev/
         umount /pub/livecd/source/var/cache/pacman/pkg
         umount /pub/livecd/source/proc
+	umount /pub/livecd/source/sys
 	if mount |grep -q /pub/livecd/source
 	then
 		echo "umount failed"
