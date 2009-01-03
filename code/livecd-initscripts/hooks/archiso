@@ -32,13 +32,13 @@ mount_tmpfs ()
 mount_ext2fs ()
 {
    msg -n ":: Mounting ext2fs for persistable storage..."
-   mount -t ext2 $PERSISTABLE_MOUNT /tmpfs
+   mount -t ext2 $persistable /tmpfs
    msg "done."
 }
 run_hook ()
 {
-    msg "persistable value: $PERSISTABLE_MOUNT"
-    if [ $PERSISTABLE_MOUNT ]; then
+    msg "persistable value: $persistable"
+    if [ $persistable ]; then
         mount_ext2fs
     else
     	mount_tmpfs

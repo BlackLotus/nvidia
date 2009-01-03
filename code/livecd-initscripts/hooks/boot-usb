@@ -29,8 +29,14 @@ run_hook ()
     else
         export BOOT_MOUNT="${bootmnt}"
     fi
-    if [ $PERSISTABLE ]; then
-        export PERSISTABLE_MOUNT="$(echo ${usb} |sed -e 's/1/2/')"
+    # check if there is a partition available for writing
+    persistable=$(echo $usb|sed -e 's/1/2/')
+    mkdir /test
+    if mount -t ext2 $persistable /test
+    then
+        umount /test
+        export $persistable
+        rm -r /test
     fi
 }
 
