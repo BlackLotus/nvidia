@@ -33,15 +33,15 @@ build() {
 # make node || return 1
   mkdir -p ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
   install com_on_air_cs.ko ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
-  mkdir -p -D ${pkgdir}/usr/bin -m 0665
+  mkdir -p -D ${pkgdir}/usr/bin -m 755
   cd tools
-  install coa_syncsniff -D ${pkgdir}/usr/bin -m 0665
-  install dect_cli -D ${pkgdir}/usr/bin -m 0665
-  install pcap2cchan -D ${pkgdir}/usr/bin -m 0665
-  install pcapstein -D ${pkgdir}/usr/bin -m 0665
+  install coa_syncsniff -D ${pkgdir}/usr/bin -m 755
+  install dect_cli -D ${pkgdir}/usr/bin -m 755
+  install pcap2cchan -D ${pkgdir}/usr/bin -m 755
+  install pcapstein -D ${pkgdir}/usr/bin -m 755
   cd dectshark 
   make || return 1
-  install dectshark -D ${pkgdir}/usr/bin -m 0665
+  install dectshark -D ${pkgdir}/usr/bin -m 755
 
   
 }
