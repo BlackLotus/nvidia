@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 pkgname=chaox-wallpaper
 pkgver=1
-pkgrel=2
+pkgrel=3
 pkgdesc="A nice wallpaper for chaox"
 arch=("i686")
 url="http://jenux.homelinux.org/~shino/dango-chaox.svg"
@@ -18,7 +18,7 @@ build() {
   cd "${pkgdir}"/usr/share/wallpapers/dango-chaox/contents/images
   for res in $(for x in $(ls /usr/share/wallpapers/Blue_Curl/contents/images/*.jpg); do basename $x .jpg;done)
   do
-    convert -size $res dango-chaox.svg $res.jpg
+    convert -geometry $res dango-chaox.svg $res.jpg
   done
   install -m 644 "${srcdir}"/metadata.desktop "${pkgdir}"/usr/share/wallpapers/dango-chaox
 }
