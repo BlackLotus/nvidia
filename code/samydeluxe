@@ -22,6 +22,8 @@ def samdump(hd,windir,dumpfile):
 	else:
 		return 0
 
+
+
 for hd in devices:
 	mkdirE=exec2('sudo mkdir /mnt/'+hd[0])
         mountE=exec2('sudo mount -o umask=0000 /dev/'+hd[0]+' /mnt/'+hd[0])

@@ -33,7 +33,7 @@ build() {
 # make node || return 1
   mkdir -p ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
   install com_on_air_cs.ko ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
-  mkdir -p -D ${pkgdir}/usr/bin -m 755
+  mkdir -p ${pkgdir}/usr/bin -m 755
   cd tools
   install coa_syncsniff -D ${pkgdir}/usr/bin -m 755
   install dect_cli -D ${pkgdir}/usr/bin -m 755
