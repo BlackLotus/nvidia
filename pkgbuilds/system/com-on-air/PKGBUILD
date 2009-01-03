@@ -3,7 +3,7 @@
 pkgname=com-on-air
 pkgver=17
 pkgrel=1
-pkgdesc="Com on air linux driver. Dect pcmcia card."
+pkgdesc="Com on air linux driver and userspace tools. Dect pcmcia card."
 url="https://dedected.org/cgi-bin/trac.cgi/wiki/COM-ON-AIR-Linux"
 arch=('i686' 'x86_64')
 license=('GPL v2')
@@ -28,24 +28,21 @@ build() {
 
   msg "SVN checkout done or server timeout"
   msg "Starting make..."
-
   cd $_svnmod
-
-  pwd
   make || return 1
   make -C tools || return 1
 # make node || return 1
   mkdir -p ${pkgdir}/lib/modules/`uname -r`/kernel/drivers/pcmcia/
-  ls
-  cp com_on_air_cs.ko ${pkgdir}/lib/modules/`uname -r`/kernel/drivers/pcmcia/
-  mkdir -p ${pkgdir}/usr/bin
+  install com_on_air_cs.ko ${pkgdir}/lib/modules/`uname -r`/kernel/drivers/pcmcia/
+  mkdir -p -D ${pkgdir}/usr/bin -m 0665
   cd tools
-  cp coa_syncsniff ${pkgdir}/usr/bin
-  cp dect_cli ${pkgdir}/usr/bin
-  cp pcap2cchan ${pkgdir}/usr/bin
-  cp pcapstein ${pkgdir}/usr/bin
+  install coa_syncsniff -D ${pkgdir}/usr/bin -m 0665
+  install dect_cli -D ${pkgdir}/usr/bin -m 0665
+  install pcap2cchan -D ${pkgdir}/usr/bin -m 0665
+  install pcapstein -D ${pkgdir}/usr/bin -m 0665
   cd dectshark 
-  make
-  cp dectshark {pkgdir}/usr/bin
+  make || return 1
+  install dectshark -D ${pkgdir}/usr/bin -m 0665
+
   
 }
