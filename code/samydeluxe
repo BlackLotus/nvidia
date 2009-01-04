@@ -9,7 +9,7 @@ exec2=commands.getoutput
 username=os.getenv('USER')
 home=os.getenv('HOME')
 fdisk=exec2('sudo fdisk -l')
-fdiskR=re.compile('/dev/(\D+\d)[\s\*]+\d+\s+\d+\s+\d+\s+(\d+)')
+fdiskR=re.compile('/dev/(\D+\d)[\s\*]+[\d\+]+\s+[\d\+]+\s+[\d\+]+\s+(\d+)')
 
 devices=fdiskR.findall(fdisk)
 
