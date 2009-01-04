@@ -3,7 +3,7 @@
 pkgname=kernel26-chaox
 _basekernel=2.6.28
 pkgver=2.6.28
-pkgrel=3
+pkgrel=4
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
 license=('GPL2')
