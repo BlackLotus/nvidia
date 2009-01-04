@@ -2,12 +2,12 @@
 # Contributor: niQo
 pkgname=gtkpod-svn
 pkgver=2185
-pkgrel=1
+pkgrel=2
 pkgdesc="a platform independent GUI for Apple's iPod using GTK2"
 arch=(i686 x86_64)
 license=('GPL')
 url="http://gtkpod.sourceforge.net"
-depends=('libgpod>=0.5.2' libmp4v2 flac libid3tag libgnomecanvas libvorbis curl)
+depends=('libgpod-svn' libmp4v2 flac libid3tag libvorbis curl hal libglade)
 conflicts=('gtkpod')
 provides=('gtkpod')
 source=()
