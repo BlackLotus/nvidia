@@ -2,7 +2,7 @@
 # Contributor: Tobias Powalowski <tpowa@archlinux.org>
 pkgname=nvidia-96xx
 pkgver=96.43.09
-pkgrel=3
+pkgrel=4
 pkgdesc="NVIDIA legacy drivers for kernel26, 96xx branch"
 arch=(i686 x86_64)
 license=('custom:NVIDIA')
