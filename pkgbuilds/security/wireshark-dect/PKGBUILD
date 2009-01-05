@@ -1,8 +1,6 @@
-# $Id$
-# Maintainer: Hugo Doria <hugo@archlinux.org>
-# Maintainer: Thomas Schneider <blacklotus@jenux.homelinux.org
-
-pkgname=wireshark
+# Contributor: Hugo Doria <hugo@archlinux.org>
+# Contributor: Thomas Schneider <blacklotus@jenux.homelinux.org
+pkgname=wireshark-dect
 pkgver=1.0.5
 pkgrel=1
 pkgdesc="A free network protocol analyzer for Unix/Linux and Windows with DECT Patches."
@@ -11,16 +9,15 @@ license=('GPL2')
 depends=('gtk2>=2.14.5' 'heimdal>=1.2.1' 'libpcap>=1.0.0' 'bash' 'gnutls>=2.4.1' 'libcap')
 makedepends=('bison' 'flex')
 url="http://www.wireshark.org/"
-replaces=('ethereal')
+replaces=('ethereal' 'wireshark')
 options=(!libtool)
 source=(http://www.wireshark.org/download/src/${pkgname}-${pkgver}.tar.gz https://dedected.org/svn/trunk/wireshark-dect/patches/wireshark-${pkgver}_dect.patch)
 md5sums=('99ac9a9d2c1445658039f1f34c89e3f6' 'b076a4e92757d0a00aa79d977bf20f22')
-
 build() {
-  cd ${srcdir}/${pkgname}-${pkgver}
+  cd "${srcdir}"/${pkgname}-${pkgver}
   export CFLAGS="-fno-unit-at-a-time ${CFLAGS}"
-  patch -Np1 -i ${startdir}/wireshark-1.0.5_dect.patch
+  patch -Np1 -i "${srcdir}"/wireshark-1.0.5_dect.patch
   ./configure --prefix=/usr --with-ssl || return 1
   make all || return 1
-  make DESTDIR=${pkgdir} install || return 1
+  make DESTDIR="${pkgdir}" install || return 1
 }
