@@ -5,7 +5,7 @@
 
 pkgname=john
 pkgver=1.7.3.1
-pkgrel=2
+pkgrel=3
 pkgdesc="John the Ripper is a fast password cracker. Additional patches (NTLM, MySQL, Kerberos V5, etc.) included."
 arch=(i686 x86_64)
 url="http://www.openwall.com/$pkgname/"
@@ -22,11 +22,12 @@ build() {
 	patch -p1 < "${srcdir}"/$pkgname-1.7.3.1-all-5.diff || return 1
 	cd "${srcdir}"/john-$pkgver/src/
 
-	sed -i 's|CFLAGS = -c -Wall -O2|CFLAGS = -c -Wall -O2 -march=i686 -DJOHN_SYSTEMWIDE=1|' Makefile
+	sed -i 's|CFLAGS = -c -Wall -O2|CFLAGS = -c -Wall -O2 -march=i686 -fomit-frame-pointer -pipe -mtune=generic -DJOHN_SYSTEMWIDE=1|' Makefile || return 1
 	make linux-x86-mmx || return 1
 
-	sed -i 's|$JOHN|/usr/share/john|g' "${srcdir}"/john-$pkgver/run/john.conf
-	install -m644 "${srcdir}"/john-$pkgver/run/john.conf "${pkgdir}"/usr/share/john/john.ini
+	sed -i 's|$JOHN|/usr/share/john|g' "${srcdir}"/john-$pkgver/run/john.conf || return 1
+	mkdir -p "${pkgdir}"/usr/share/john/ 
+	install -m644 "${srcdir}"/john-$pkgver/run/john.conf "${pkgdir}"/usr/share/john/john.ini || return 1
 	
 	# docs
 	mkdir -p "${pkgdir}"/usr/share/john/doc
