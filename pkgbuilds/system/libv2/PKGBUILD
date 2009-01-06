@@ -1,0 +1,21 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+pkgname=libv2
+pkgver=1.10
+pkgrel=1
+pkgdesc="library for different datastructures"
+arch=("i686")
+url="http://www.sorcerynet.org/"
+license=('GPL')
+depends=("gcc-libs")
+makedepends=("make" "sed")
+source=(http://www.sorcerynet.org/downloads/$pkgname-$pkgver.tar.gz)
+md5sums=('2d1f67882b4e215f6ec7f2c73eecff6d')
+build() {
+  cd "$srcdir/voodoo2"
+  sed -i "s|/usr|${pkgdir}/usr|g" Makefile
+  sed -i "s|VOODOO2_COMPILER_OPTIONS .* = -g|VOODOO2_COMPILER_OPTIONS = ${CXXFLAGS}|g" Makefile
+  make || return 1
+  make install || return 1
+}
+
+# vim:set ts=2 sw=2 et:
