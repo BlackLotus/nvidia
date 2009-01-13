@@ -28,7 +28,7 @@ build() {
   msg "SVN checkout done or server timeout"
   msg "Starting make..."
   cd $_svnmod
-  make KERNEL_SOURCES=$_kerndir|| return 1
+  make KDIR=$_kerndir|| return 1
   mkdir -p ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
   install com_on_air_cs.ko ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
 }
