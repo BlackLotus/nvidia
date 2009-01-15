@@ -35,6 +35,6 @@ build() {
   mkdir -p ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
   install com_on_air_cs.ko ${pkgdir}/lib/modules/${_kernver}/kernel/drivers/pcmcia/
 
-  install -D "${srcdir}/udev.rules" "/lib/udev/rules.d/99-dect.rules"
-  install -D -m755  "${scrdir}/load-dect.sh" "/lib/udev/load-dect.sh"
+  install -D "${srcdir}/udev.rules" "${pkgdir}/etc/udev/rules.d/99-dect.rules"
+  install -D -m755 "${srcdir}/load-dect.sh" "${pkgdir}/lib/udev/load-dect.sh"
 }
