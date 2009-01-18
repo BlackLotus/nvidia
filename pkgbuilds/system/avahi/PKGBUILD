@@ -2,8 +2,8 @@
 # Contributor: Douglas Soares de Andrade <douglas@archlinux.org>
 
 pkgname=avahi
-pkgver=0.6.23
-pkgrel=3
+pkgver=0.6.24
+pkgrel=1
 pkgdesc="A multicast/unicast DNS-SD framework"
 arch=('i686' 'x86_64')
 url="http://www.avahi.org/"
@@ -21,11 +21,10 @@ options=('!libtool')
 source=(http://www.avahi.org/download/avahi-${pkgver}.tar.gz gnome-nettool.png)
 
 build() {
-  [ -z "${QTDIR}" ] && . /etc/profile.d/qt3.sh
-  export MONO_SHARED_DIR=${startdir}/src/.wabi
+  export MONO_SHARED_DIR="${srcdir}"/.wabi
   mkdir -p ${MONO_SHARED_DIR}
 
-  cd ${startdir}/src/${pkgname}-${pkgver}
+  cd "${srcdir}"/${pkgname}-${pkgver}
   ./configure --prefix=/usr \
     --sysconfdir=/etc \
     --localstatedir=/var \
@@ -44,25 +43,25 @@ build() {
     --disable-gdbm
 
   make || return 1
-  make DESTDIR=${startdir}/pkg install
+  make DESTDIR="${pkgdir}" install
 
   rm -rf ${MONO_SHARED_DIR}
   
   #fix capability
-  sed -i -e 's|$DAEMON -D |modprobe capability  > /dev/null 2>\&1 ;  $DAEMON -D |' ${startdir}/pkg/etc/rc.d/avahi-daemon
+  sed -i -e 's|$DAEMON -D |modprobe capability  > /dev/null 2>\&1 ;  $DAEMON -D |' "${pkgdir}"/etc/rc.d/avahi-daemon
 
-  sed -i -e 's/netdev/network/g' ${startdir}/pkg/etc/dbus-1/system.d/avahi-dbus.conf
+  sed -i -e 's/netdev/network/g' "${pkgdir}"/etc/dbus-1/system.d/avahi-dbus.conf
    
   # howl and mdnsresponder compatability
-  cd ${startdir}/pkg/usr/include
+  cd "${pkgdir}"/usr/include
   ln -s avahi-compat-libdns_sd/dns_sd.h dns_sd.h
   ln -s avahi-compat-howl howl
-  cd ${startdir}/pkg/usr/lib/pkgconfig
+  cd "${pkgdir}"/usr/lib/pkgconfig
   ln -s avahi-compat-howl.pc howl.pc
-  mkdir -p ${startdir}/pkg/usr/share/pixmaps
-  install -m 644 ${startdir}/src/gnome-nettool.png ${startdir}/pkg/usr/share/pixmaps/gnome-nettool.png
+  mkdir -p "${pkgdir}"/usr/share/pixmaps
+  install -m 644 "${srcdir}"/gnome-nettool.png "${pkgdir}"/usr/share/pixmaps/gnome-nettool.png
 }
 
-md5sums=('aab1a304851d8145ea5f6a85c10af9e9'
+md5sums=('068c1d220b07037e64caf87d4a7a0504'
          '42c2905307c7a5dc6ac4b75f4c3d65a3')
 
