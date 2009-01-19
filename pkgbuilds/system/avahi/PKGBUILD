@@ -11,7 +11,7 @@ license=('LGPL')
 depends=('libglade' 'libcap' 'libdaemon>=0.11' 'python' 'dbus-core')
 optdepends=('libglade:Avahi-discover-standalone'
             'nss-mdns:NSS support for mDNS')
-makedepends=('mono' 'pygtk' 'gtk-sharp-2' 'dbus-python' 'qt3' 'libglade' 'intltool')
+makedepends=('mono' 'pygtk' 'gtk-sharp-2' 'dbus-python' 'libglade' 'intltool')
 backup=(etc/avahi/avahi-daemon.conf)
 install=avahi.install
 conflicts=('howl' 'mdnsresponder')
