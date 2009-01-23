@@ -17,7 +17,7 @@ CHROOTED
 makelivecd() {
 	mount-chroot
 	chroot source /bin/bash --login <<CHROOTED
-	mkinitcpio -k $(ls /pub/livecd/source/lib/modules/) -v -g /boot/initramfs
+	mkinitcpio -k $(ls /pub/livecd/source/lib/modules/) -v -g /boot/initramfs -c /etc/mkinitcpio-cdrom.conf
 CHROOTED
 	umount-chroot
 	cp -R /pub/livecd/source/boot/* /pub/livecd/target/boot/
