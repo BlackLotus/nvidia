@@ -2,7 +2,7 @@
 
 pkgname=kismet-dect-svn
 pkgver=39
-pkgrel=3
+pkgrel=4
 pkgdesc="DECT Plugin for Kismet"
 arch=('i686' 'x86_64')
 url="https://dedected.org/"
