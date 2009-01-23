@@ -7,6 +7,7 @@ post_install() {
   echo ">>> Updating module dependencies. Please wait ..."
   KERNEL_VERSION=2.6.28.1-chaox
   depmod -v $KERNEL_VERSION > /dev/null 2>&1
+  /sbin/mkinitcpio -p kernel26-chaox
   /bin/true
 }
 
@@ -15,6 +16,7 @@ post_upgrade() {
   echo ">>> Updating module dependencies. Please wait ..."
   KERNEL_VERSION=2.6.28.1-chaox
   depmod -v $KERNEL_VERSION > /dev/null 2>&1
+  /sbin/mkinitcpio -p kernel26-chaox
   /bin/true
 }
 

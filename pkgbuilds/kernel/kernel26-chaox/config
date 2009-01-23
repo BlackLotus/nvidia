@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.28.1
-# Tue Jan 20 14:12:56 2009
+# Fri Jan 23 13:14:56 2009
 #
 # CONFIG_64BIT is not set
 CONFIG_X86_32=y
@@ -70,7 +70,7 @@ CONFIG_BSD_PROCESS_ACCT=y
 # CONFIG_AUDIT is not set
 CONFIG_IKCONFIG=y
 CONFIG_IKCONFIG_PROC=y
-CONFIG_LOG_BUF_SHIFT=18
+CONFIG_LOG_BUF_SHIFT=19
 # CONFIG_CGROUPS is not set
 CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=y
 CONFIG_GROUP_SCHED=y
