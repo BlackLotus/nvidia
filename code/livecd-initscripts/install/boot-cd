@@ -11,7 +11,7 @@ install ()
     add_file /etc/udev/rules.d/81-arch.rules /lib/udev/rules.d/81-arch.rules
     add_file /etc/udev/rules.d/75-cd-aliases-generator.rules.optional /lib/udev/rules.d/75-cd-aliases-generator.rules.optional
     add_file /lib/udev/cdsymlinks.sh /lib/udev/cdsymlinks.sh
-    BINARIES="/lib/udev/cdromid"
+    BINARIES="/lib/udev/cdrom_id"
     FILES=""
     SCRIPT="boot-cd"
 }
