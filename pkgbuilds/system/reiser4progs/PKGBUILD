@@ -1,0 +1,21 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Orivej Desh <smpuj@bk.ru>
+pkgname=reiser4progs
+pkgver=1.0.7
+pkgrel=1
+pkgdesc="Reiser4 filesystem programs"
+arch=("i686" "x86_64")
+url="http://www.kernel.org/pub/linux/utils/fs/reiser4/reiser4progs/"
+license=("GPL")
+depends=("e2fsprogs" "libaal" "readline")
+options=("!libtool")
+source=("http://www.kernel.org/pub/linux/utils/fs/reiser4/reiser4progs/reiser4progs-$pkgver.tar.bz2")
+md5sums=('5629404922f189b5ddaf4d74f28c3a5b')
+
+build() {
+  cd "${srcdir}"/$pkgname-$pkgver
+  ./configure --prefix=/usr --exec-prefix=/
+  make || return 1
+  make DESTDIR="${pkgdir}"/ install
+}
+
