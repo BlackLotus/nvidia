@@ -1,8 +1,8 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Nils Christopher Brause <mastercpp@gmx.net>
 pkgname=madwifi-newhal-svn
-pkgver=3917
-pkgrel=2
+pkgver=3931
+pkgrel=1
 pkgdesc="Madwifi drivers for Atheros wireless chipsets. HAL 0.10.5.6 branch."
 arch=(i686 x86_64)
 url="http://madwifi-project.org/"

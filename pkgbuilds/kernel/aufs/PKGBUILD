@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Christopher Rogers aka Godane <slaxemulator@gmail.com>
 pkgname=aufs
-pkgver=20090123
+pkgver=20090126
 pkgrel=1
 pkgdesc="Another Unionfs Implementation. For using with arch-live kernel26slax."
 arch=('i686' 'x86_64')
