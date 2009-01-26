@@ -1,6 +1,6 @@
 # Contributor: Shino <shino@jenux.homelinux.org>
 pkgname=kismet-newcore-svn
-pkgver=2576
+pkgver=2582
 pkgrel=1
 pkgdesc="Next generation of the wireless network sniffer"
 arch=('i686' 'x86_64')
