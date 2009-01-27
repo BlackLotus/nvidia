@@ -9,12 +9,12 @@ arch=('i686' 'x86_64')
 url="http://projects.archlinux.org/?p=installer.git"
 license=('GPL')
 depends=('bash')
-source=("http://ftp.archlinux.org/other/$pkgname/$pkgname-$pkgver.tar.gz" "chaox-setup.diff")
+source=("http://ftp.archlinux.org/other/archlinux-installer/archlinux-installer-$pkgver.tar.gz" "chaox-setup.diff")
 md5sums=('03069e5ca3732bf180c7d6848527835b'
          '234acb747411b78e8e4c6ec68d368b4a')
 
 build() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir/archlinux-installer-$pkgver"
   patch -p0 < "$srcdir/chaox-setup.diff" || return 1
   install -D -m755 setup "$pkgdir/arch/chaox-setup"
 }
