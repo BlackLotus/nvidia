@@ -3,16 +3,16 @@
 # Contributor: Andreas Radke <andyrtr@archlinux.org>
 
 pkgname=gcc
-pkgver=4.3.2
-pkgrel=2
+pkgver=4.3.3
+pkgrel=1
 #_snapshot=4.3-20080724
 pkgdesc="The GNU Compiler Collection"
 arch=(i686 x86_64)
 license=('GPL' 'LGPL')
 groups=('base-devel')
 url="http://gcc.gnu.org"
-depends=('binutils>=2.18-9' "gcc-libs>=${pkgver}" 'mpfr>=2.3.1')
-makedepends=('texinfo')
+depends=('binutils>=2.19' "gcc-libs>=${pkgver}" 'mpfr>=2.3.1')
+makedepends=('flex')
 options=('!libtool')
 source=(ftp://gcc.gnu.org/pub/gcc/releases/gcc-${pkgver}/gcc-{core,g++}-${pkgver}.tar.bz2
 	#ftp://gcc.gnu.org/pub/gcc/snapshots/${_snapshot}/gcc-{core,g++}-${_snapshot}.tar.bz2
@@ -20,8 +20,8 @@ source=(ftp://gcc.gnu.org/pub/gcc/releases/gcc-${pkgver}/gcc-{core,g++}-${pkgver
 	gcc_pure64.patch
 	gcc-hash-style-both.patch
 	)
-md5sums=('dd8048b43d3d4e5595bcade47b9144c6'
-         'bfdf8d19e1b85f522f8b8d48d25e7aaa'
+md5sums=('1739288c2c7b1472796b33d641dbdbbd'
+         '18428e313a9927d38b313e688c62219b'
          '990881456a89b1ffbd68d2d7188759da'
          '4030ee1c08dd1e843c0225b772360e76'
          'bb420bc84b1104455b7230b1cd4b96c2')
