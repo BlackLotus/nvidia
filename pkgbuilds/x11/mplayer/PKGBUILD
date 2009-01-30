@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Bächler <thomas@archlinux.org>
 pkgname=mplayer
-pkgver=28347
+pkgver=28388
 pkgrel=1
 pkgdesc="A movie player for linux"
 arch=(i686 x86_64)
@@ -36,7 +36,7 @@ build() {
       --disable-liblzo --disable-speex --disable-openal \
       --enable-fribidi --disable-libdv --disable-musepack \
       --language=en --disable-dvdnav --disable-esd --disable-mga \
-      --disable-libamr_nb --disable-jack \
+      --disable-libamr_nb --disable-jack --disable-pulse \
       --with-extraincdir=/usr/lib/live-media
   [ "$CARCH" = "i686" ] &&  sed 's|-march=i486|-march=i686|g' -i config.mak
   make || return 1
