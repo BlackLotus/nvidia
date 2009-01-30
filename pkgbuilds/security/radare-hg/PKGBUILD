@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Shino <shino@jenux.homelinux.org>
 pkgname="radare-hg"
-pkgver=848
+pkgver=866
 pkgrel=1
 pkgdesc="A collection of tools with the aim to create a complete, portable, multi-architecture, unix-like toolchain for reverse engineering."
 arch=('i686' 'x86_64')
