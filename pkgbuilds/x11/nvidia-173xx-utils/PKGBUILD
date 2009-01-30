@@ -1,9 +1,9 @@
-# $Id: PKGBUILD 7917 2008-08-05 08:05:25Z tpowa $
-# Maintainer: Thomas Baechler <thomas@archlinux.org>
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Thomas Baechler <thomas@archlinux.org>
 # Contributor: James Rayner <iphitus@gmail.com>
 
 pkgname=nvidia-173xx-utils
-pkgver=173.14.12
+pkgver=173.14.16
 pkgrel=1
 pkgdesc="NVIDIA legacy drivers utilities and libraries. 173xx branch."
 arch=('i686' 'x86_64')
@@ -16,9 +16,9 @@ conflicts=('libgl' 'libgl-dri' 'ati-fglrx-utils' 'nvidia-legacy-utils' \
 provides=('libgl')
 license=('custom')
 install=nvidia.install
-source=(http://us.download.nvidia.com/XFree86/Linux-${ARCH}/${pkgver}/NVIDIA-Linux-${ARCH}-${pkgver}-pkg0.run \
+source=(ftp://download.nvidia.com/XFree86/Linux-${ARCH}/${pkgver}/NVIDIA-Linux-${ARCH}-${pkgver}-pkg0.run \
         supported-cards.txt)
-md5sums=('76b8eba1b14fc273a1a4044705b0aa56'
+md5sums=('2ee6c2ed8151639943788d1360db6420'
          'bf8d68d66757096c3ab17653230bf2a8')
 [ "$CARCH" = "x86_64" ] && md5sums=('8675e4ca65033b343c8c77b2ce82e71d'
                         	    'bf8d68d66757096c3ab17653230bf2a8')
