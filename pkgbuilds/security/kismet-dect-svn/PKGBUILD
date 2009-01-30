@@ -1,7 +1,7 @@
 # Contributor: Shino <shino@jenux.homelinux.org>
 
 pkgname=kismet-dect-svn
-pkgver=46
+pkgver=57
 pkgrel=1
 pkgdesc="DECT Plugin for Kismet"
 arch=('i686' 'x86_64')
