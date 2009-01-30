@@ -1,13 +1,13 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Schneider <blacklotus@jenux.homelinux.org>
-
 pkgname=com-on-air-tools
-pkgver=47
+pkgver=58
 pkgrel=1
 pkgdesc="Com on air linux driver and userspace tools. Dect pcmcia card."
 url="https://dedected.org/cgi-bin/trac.cgi/wiki/COM-ON-AIR-Linux"
 arch=('i686' 'x86_64')
-license=('GPL v2')
-depends=()
+license=('GPL')
+depends=("libpcap" "gcc-libs")
 makedepends=('subversion' 'gcc')
 conflicts=()
 provides=()
