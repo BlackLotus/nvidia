@@ -2,7 +2,7 @@
 #Contributor Antti Oja <antti.bofh(AT)gmail.com>
 pkgname=rt2860
 pkgver=1.8.0.0
-pkgrel=5
+pkgrel=6
 pkgdesc="Drivers for rt2860/2890 chipset wireless cards"
 arch=('i686' 'x86_64')
 url="http://www.ralinktech.com/"

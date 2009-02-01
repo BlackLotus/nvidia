@@ -1,21 +1,20 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Tobias Powalowski <tpowa@archlinux.org>
 pkgname=ndiswrapper
-pkgver=1.53
-pkgrel=22
+pkgver=1.54
+pkgrel=1
 pkgdesc="Module for NDIS (Windows Network Drivers) drivers supplied by vendors. For stock arch 2.6 kernel."
 license=('GPL')
 arch=(i686 x86_64)
 url="http://ndiswrapper.sourceforge.net"
 install="ndiswrapper.install"
 depends=("ndiswrapper-utils=$pkgver")
-source=(http://downloads.sourceforge.net/sourceforge/ndiswrapper/ndiswrapper-$pkgver.tar.gz kernel-2.6.27.patch)
+source=(http://downloads.sourceforge.net/sourceforge/ndiswrapper/ndiswrapper-$pkgver.tar.gz)
 
 build()
 {
   source "${startdir}"/../kernel.env
   cd "${srcdir}"/$pkgname-$pkgver/driver
-  patch -Np1 -i "${srcdir}"/kernel-2.6.27.patch
   make KVERS=$_kernver KBUILD=$_kernpath
   make DESTDIR="${pkgdir}" KVERS=$_kernver KBUILD=$_kerndir install || return 1
   rm "${pkgdir}"/lib/modules/$_kernver/modules.* #wtf?
@@ -25,6 +24,5 @@ build()
   rm -r "${pkgdir}"/lib/modules/$_kernver/misc/
   sed -i -e "s/KERNEL_VERSION='.*'/KERNEL_VERSION='${_kernver}'/" $startdir/*.install
 }
-md5sums=('393c6e6ab0803963148e18538601cdec'
-         'cd09562c4afdbd20a0237a5e6d976b31')
+md5sums=('fc9ebd3985967727da494ec298ad4487')
 

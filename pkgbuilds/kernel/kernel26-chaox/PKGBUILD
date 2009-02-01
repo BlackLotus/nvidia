@@ -3,7 +3,7 @@
 pkgname=kernel26-chaox
 _basekernel=2.6.28
 pkgver=2.6.28.2
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
 license=('GPL2')
@@ -40,14 +40,13 @@ md5sums=('d351e44709c9810b85e29b877f50968a'
          '69c34c83c6f64570efa3bc65c39304c5'
          '2c3adc6510c5bd47f0a04ace4aa2ea1d'
          '04abcf6b17f5bfa8823617b428b3a3c6'
-         '9d6c0bf55a906a773ea74ac7a3938cb6'
+         '0d91548276fa74dad7ee882a009b9bb0'
          'e4ac854309dbf941c834b3597d2cd954'
          'a49390dd08e4f7702b8f4b550f1ad84e'
          '2a4d2995ad5aa6840c95a95ffa6b1da6'
          '0b024ec3aefd98c68b30334d3ab682df'
          'a9eda3969e6bdfd45048529260a4eea3'
          'a162a23b5db02738309e54b6ca9fcbc9')
-
 build() {
   KARCH=x86
 
