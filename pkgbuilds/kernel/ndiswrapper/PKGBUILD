@@ -2,7 +2,7 @@
 # Contributor: Tobias Powalowski <tpowa@archlinux.org>
 pkgname=ndiswrapper
 pkgver=1.54
-pkgrel=1
+pkgrel=2
 pkgdesc="Module for NDIS (Windows Network Drivers) drivers supplied by vendors. For stock arch 2.6 kernel."
 license=('GPL')
 arch=(i686 x86_64)

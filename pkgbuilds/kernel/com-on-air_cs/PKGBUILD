@@ -3,7 +3,7 @@
 # Contributor: Shino <shino@jenux.homelinux.org>
 pkgname=com-on-air_cs
 pkgver=58
-pkgrel=1
+pkgrel=2
 pkgdesc="Com on air linux driver, for dect pcmcia cards."
 url="https://dedected.org/cgi-bin/trac.cgi/wiki/COM-ON-AIR-Linux"
 arch=('i686' 'x86_64')
