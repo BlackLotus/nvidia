@@ -1,12 +1,12 @@
 # Contributor: Shino <shino@jenux.homelinux.org>
 pkgname=kismet-newcore-svn
-pkgver=2593
+pkgver=2600
 pkgrel=1
 pkgdesc="Next generation of the wireless network sniffer"
 arch=('i686' 'x86_64')
 url="http://www.kismetwireless.net/"
 license=('GPL')
-depends=('libpcap' 'libcap' 'libnl' 'pcre')
+depends=('bash' 'libpcap' 'libcap' 'libnl' 'pcre')
 makedepends=('subversion')
 provides=(kismet kismet-newcore)
 conflicts=(kismet kismet-newcore)
