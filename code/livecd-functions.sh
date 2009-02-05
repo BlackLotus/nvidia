@@ -20,20 +20,20 @@ makelivecd() {
 	mkinitcpio -k $(ls /pub/livecd/source/lib/modules/) -v -g /boot/initramfs -c /etc/mkinitcpio-cdrom.conf
 CHROOTED
 	umount-chroot
-	cp -R /pub/livecd/source/boot/* /pub/livecd/target/boot/
-	time mkisofs -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot.catalog -o /pub/livecd/chaoxcd-$(date +%F-%H-%M).iso -x files /pub/livecd/target/
+	cp -R /pub/livecd/source/boot/{initramfs,memtest86+,System.map26,vmlinuz26,isolinux} /pub/livecd/target/boot/
+	time mkisofs -b boot/isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot/isolinux/boot.cat -o /pub/livecd/chaoxcd-$(date +%F-%H-%M).iso -x files /pub/livecd/target/
 }
 makeliveusb() {
-	# this function requires the archiso package to be installed
 	mount-chroot
         chroot source /bin/bash --login <<CHROOTED
         mkinitcpio -k $(ls /pub/livecd/source/lib/modules) -v -g /boot/initramfs -c /etc/mkinitcpio-usb.conf
 CHROOTED
 	umount-chroot
-        cp -R /pub/livecd/source/boot/* /pub/livecd/target/boot/
-	sed -i 's/(cd)/(hd0,0)/g' target/boot/grub/*.lst	
+        cp -R /pub/livecd/source/boot/isolinux /pub/livecd/target/boot/syslinux
+	cp -R /pub/livecd/source/boot/{initramfs,memtest86+,System.map26,vmlinuz26} /pub/livecd/target/boot/
 	modprobe loop
-	mkusbimg /pub/livecd/target/ /pub/livecd/chaoxusb-$(date +%F-%H-%M).img
+	# archboot script from git, adjust path
+	/home/jens/downloads/usr_bin_archboot-usbimage-helper.sh /pub/livecd/target /pub/livecd/chaoxusb-$(date +%F-%H-%M).img
 }	
 mount-chroot() {
 	cd /pub/livecd
