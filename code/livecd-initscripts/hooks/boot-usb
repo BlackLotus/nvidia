@@ -11,7 +11,7 @@ run_hook ()
     found=0
     modprobe ext2
     for usb in /dev/sd[a-z][0-9]; do
-        if  mount -r -t ext2 "${usb}" ${bootmnt} >/dev/null 2>&1; then
+        if  mount -r "${usb}" ${bootmnt} >/dev/null 2>&1; then
             if [ -e "${bootmnt}/archlive.sqfs" ]; then
                 found=1
                 msg "${usb}"
