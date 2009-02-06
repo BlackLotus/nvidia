@@ -24,8 +24,8 @@ run_hook ()
     done
 
     if [ ${found} -eq 0 ]; then
-        echo "ERROR: cannot find booted usb device, cannot continue..."
-        exit 1
+        echo "ERROR: cannot find booted usb device, exiting to shell"
+        /bin/sh
     else
         export BOOT_MOUNT="${bootmnt}"
     fi
