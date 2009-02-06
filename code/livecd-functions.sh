@@ -29,7 +29,12 @@ makeliveusb() {
         mkinitcpio -k $(ls /pub/livecd/source/lib/modules) -v -g /boot/initramfs -c /etc/mkinitcpio-usb.conf
 CHROOTED
 	umount-chroot
+	rm -rf /pub/livecd/target/boot/*
         cp -R /pub/livecd/source/boot/isolinux /pub/livecd/target/boot/syslinux
+	cd /pub/livecd/target/boot/syslinux
+	rm isolinux.bin
+	mv isolinux.cfg syslinux.cfg
+	cd /pub/livecd
 	cp -R /pub/livecd/source/boot/{initramfs,memtest86+,System.map26,vmlinuz26} /pub/livecd/target/boot/
 	modprobe loop
 	# archboot script from git, adjust path
