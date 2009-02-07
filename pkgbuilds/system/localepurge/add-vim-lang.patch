@@ -1,0 +1,11 @@
+--- localepurge	2007-01-21 20:46:29.000000000 +0100
++++ localepurge	2008-09-08 21:56:17.000000000 +0200
+@@ -5,7 +5,7 @@
+ 
+ set -e
+ 
+-LOCALEDIRS="/usr/share/locale /usr/local/share/locale /usr/kde/?.?/share/locale /opt/sun-jdk-*/jre/lib/locale /opt/sun-jre-bin-*/lib/locale /usr/lib/locale"
++LOCALEDIRS="/usr/share/locale /usr/local/share/locale /usr/kde/?.?/share/locale /opt/sun-jdk-*/jre/lib/locale /opt/sun-jre-bin-*/lib/locale /usr/lib/locale /usr/share/vim/lang"
+ MANPAGEDIRS="/usr/share/man /usr/man /usr/local/share/man /usr/kde/?.?/share/man /usr/kde/?.?/man /opt/sun-jdk-*/man /opt/sun-jre-bin-*/man"
+ LOCALELIST="/var/cache/localepurge/localelist"
+ CONFIGFILE="/etc/locale.nopurge"

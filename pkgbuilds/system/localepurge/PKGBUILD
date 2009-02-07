@@ -1,0 +1,18 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Dincer Celik <dincer@bornovali.com>
+pkgname=localepurge
+pkgver=0.5.3.3
+pkgrel=4
+arch=("i686" "x86_64")
+pkgdesc="Script to recover diskspace wasted for unneeded locale files and localized man pages."
+license=("GPL")
+url="http://www.josealberto.org/blog/index.php?s=localepurge"
+source=("http://gentoo.osuosl.org/distfiles/$pkgname-$pkgver.tbz2" "add-vim-lang.patch")
+md5sums=('6f48b5d789a13152d4fd785fe6cb2759'
+         'c30dde2f86a88f39c058ccf3475b0ec8')
+backup=("etc/locale.nopurge")
+build() {
+  install -D -m644 "${srcdir}"/$pkgname/locale.nopurge "${pkgdir}"/etc/locale.nopurge
+  install -D -m755 "${srcdir}"/$pkgname/localepurge "${pkgdir}"/usr/bin/localepurge
+  install -D -m644 "${srcdir}"/$pkgname/defaultlist "${pkgdir}"/var/cache/localepurge/localelist
+}
