@@ -15,15 +15,20 @@ CHROOTED
 	sed -i "s/http:\/\/dev-jenux.homelinux.org\/chaox-repo/ftp:\/\/localhost\/livecd-pkg/" etc/pacman.conf
 }
 makelivecd() {
+	_DATE="$(date +%F-%H-%M)"
 	mount-chroot
 	chroot source /bin/bash --login <<CHROOTED
 	mkinitcpio -k $(ls /pub/livecd/source/lib/modules/) -v -g /boot/initramfs -c /etc/mkinitcpio-cdrom.conf
 CHROOTED
 	umount-chroot
-	cp -R /pub/livecd/source/boot/{initramfs,memtest86+,System.map26,vmlinuz26,isolinux} /pub/livecd/target/boot/
-	time mkisofs -b boot/isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot/isolinux/boot.cat -o /pub/livecd/chaoxcd-$(date +%F-%H-%M).iso -x files /pub/livecd/target/
+	rm -rf /pub/livecd/target/boot/*
+	cp -R /pub/livecd/source/boot/{initramfs,memtest,System.map26,vmlinuz26,isolinux} /pub/livecd/target/boot/
+	time mkisofs -b boot/isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot/isolinux/boot.cat -o /pub/livecd/chaoxcd-$_DATE.iso -x files /pub/livecd/target/
+	cd /pub/livecd/
+	shasum chaoxcd-$_DATE.iso > chaoxcd-$_DATE.iso.digest
 }
 makeliveusb() {
+	_DATE="$(date +%F-%H-%M)"
 	mount-chroot
         chroot source /bin/bash --login <<CHROOTED
         mkinitcpio -k $(ls /pub/livecd/source/lib/modules) -v -g /boot/initramfs -c /etc/mkinitcpio-usb.conf
@@ -35,10 +40,12 @@ CHROOTED
 	rm isolinux.bin
 	mv isolinux.cfg syslinux.cfg
 	cd /pub/livecd
-	cp -R /pub/livecd/source/boot/{initramfs,memtest86+,System.map26,vmlinuz26} /pub/livecd/target/boot/
+	cp -R /pub/livecd/source/boot/{initramfs,memtest,System.map26,vmlinuz26} /pub/livecd/target/boot/
 	modprobe loop
 	# archboot script from git, adjust path
-	/home/jens/downloads/usr_bin_archboot-usbimage-helper.sh /pub/livecd/target /pub/livecd/chaoxusb-$(date +%F-%H-%M).img
+	/home/jens/downloads/usr_bin_archboot-usbimage-helper.sh /pub/livecd/target /pub/livecd/chaoxusb-$_DATE.img
+	cd /pub/livecd/
+	shasum chaoxusb-$_DATE.img > chaoxusb-$_DATE.img.digest
 }	
 mount-chroot() {
 	cd /pub/livecd
