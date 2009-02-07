@@ -11,7 +11,7 @@ run_hook ()
     found=0
     modprobe ext2
     for usb in /dev/sd[a-z][0-9]; do
-        if  mount -r "${usb}" ${bootmnt} >/dev/null 2>&1; then
+        if  mount -t vfat -r "${usb}" ${bootmnt} >/dev/null 2>&1; then
             if [ -e "${bootmnt}/archlive.sqfs" ]; then
                 found=1
                 msg "${usb}"
@@ -30,13 +30,16 @@ run_hook ()
         export BOOT_MOUNT="${bootmnt}"
     fi
     # check if there is a partition available for writing
-    persistable=$(echo $usb|sed -e 's/1/2/')
-    mkdir /test
-    if mount -t ext2 $persistable /test
+    testpersistable=$(echo $usb|sed -e 's/1/2/')
+    if [ -b $testpersistable ]
     then
-        umount /test
-        export $persistable
-        rm -r /test
+        mkdir /test
+        if mount -t ext2 $testpersistable /test
+        then
+            umount /test
+            export persistable=$testpersistable
+            rm -r /test
+        fi
     fi
 }
 
