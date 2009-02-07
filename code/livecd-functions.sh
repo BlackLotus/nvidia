@@ -43,7 +43,7 @@ CHROOTED
 	cp -R /pub/livecd/source/boot/{initramfs,memtest,System.map26,vmlinuz26} /pub/livecd/target/boot/
 	modprobe loop
 	# archboot script from git, adjust path
-	/home/jens/downloads/usr_bin_archboot-usbimage-helper.sh /pub/livecd/target /pub/livecd/chaoxusb-$_DATE.img
+	makeusbimg.sh /pub/livecd/target /pub/livecd/chaoxusb-$_DATE.img
 	cd /pub/livecd/
 	shasum chaoxusb-$_DATE.img > chaoxusb-$_DATE.img.digest
 }	
