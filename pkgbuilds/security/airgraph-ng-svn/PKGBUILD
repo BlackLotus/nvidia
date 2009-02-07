@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 pkgname=airgraph-ng-svn
-pkgver=1379
-pkgrel=1
+pkgver=1385
+pkgrel=2
 pkgdesc="Graphing tool for the aircrack suite"
 arch=('i686' 'x86_64')
 url="http://www.aircrack-ng.org"
@@ -24,7 +24,8 @@ build() {
   msg "Starting make..."
   svn export $_svnmod $_svnmod-build
   cd $_svnmod-build
-  mkdir -p "${pkgdir}"{/usr/lib/python2.6/site-packages,/usr/bin}
+  mkdir -p "${pkgdir}"{/usr/lib/python2.6/site-packages,/usr/bin,/usr/share/man/man1} || return 1
   install -m 644 lib/lib_Airgraphviz.py "${pkgdir}"/usr/lib/python2.6/site-packages/ || return 1
+  install -m 644 man/{airgraph-ng.1,dump-join.1} "${pkgdir}"/usr/share/man/man1/ || return 1
   install -m 755 {airgraph-ng.py,dump-join.py} "${pkgdir}"/usr/bin/ || return 1
 }
