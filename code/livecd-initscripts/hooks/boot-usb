@@ -38,8 +38,8 @@ run_hook ()
         then
             umount /test
             export persistable=$testpersistable
-            rm -r /test
         fi
+        rmdir /test
     fi
 }
 
