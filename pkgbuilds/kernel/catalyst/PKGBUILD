@@ -4,7 +4,7 @@
 
 pkgname=catalyst
 pkgver=8.12
-pkgrel=11
+pkgrel=12
 pkgdesc="Proprietary AMD/ATI kernel drivers for Radeon brand cards. Stock kernel."
 arch=('i686' 'x86_64')
 url="http://www.ati.amd.com"
