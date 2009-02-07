@@ -1,8 +1,8 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: nofxx <x@nofxx.com>
 pkgname=iodine
-pkgver=0.4.2
-pkgrel=2
+pkgver=0.5.0
+pkgrel=1
 pkgdesc="Lets you tunnel IPv4 data through a DNS server."
 arch=('i686' 'x86_64')
 url="http://code.kryo.se/iodine"
@@ -12,9 +12,9 @@ provides=(iodine)
 conflicts=(iodine)
 install=
 source=(http://code.kryo.se/iodine/$pkgname-$pkgver.tar.gz)
-md5sums=('890f13ab9ee7ea722baf0ceb3ee561c0')
+md5sums=('af2d9062b7788fc47385d8c6c645dfa0')
 build() {
-        cd ${srcdir}/$pkgname-$pkgver
+        cd "${srcdir}"/$pkgname-$pkgver
 	make  || return 1
-	make prefix=/usr DESTDIR=${pkgdir} install 
+	make prefix=/usr DESTDIR="${pkgdir}" install 
 }
