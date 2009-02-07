@@ -1,0 +1,35 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Alois Nespor <alois.nespor@gmail.com>
+pkgname=brasero-lite
+origname=brasero
+pkgver=0.9.1
+pkgrel=1
+pkgdesc="A disc burning application, without  totem-plparser and nautilus dependency. Suitable for non-Gnome environment."
+arch=('i686' 'x86_64')
+url="http://www.gnome.org/projects/brasero"
+license=('GPL')
+depends=('gconf' 'gstreamer0.10-base' 'dvd+rw-tools' 'cdrdao' 'cdrkit')
+optdepends=('libburn: alternative back-end'
+            'libisofs: libburn back-end'
+            'dvdauthor: video project'
+            'gst-plugin-bad: video project'
+            'vcdimager: video project')
+makedepends=('intltool' 'gnome-doc-utils')
+install=brasero-lite.install
+source=(http://ftp.gnome.org/pub/gnome/sources/brasero/0.9/brasero-${pkgver}.tar.bz2)
+options=('!libtool' '!emptydirs')
+conflicts=('brasero' 'brasero-svn')
+
+build() {
+  cd ${srcdir}/brasero-${pkgver}
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --disable-caches --disable-schemas-install --disable-search
+  make || return 1
+  make GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL=1 DESTDIR=${pkgdir} install || return 1
+  mkdir -p ${pkgdir}/usr/share/gconf/schemas
+  gconf-merge-schema ${pkgdir}/usr/share/gconf/schemas/${pkgname}.schemas \
+    ${pkgdir}/etc/gconf/schemas/*.schemas
+  rm -f ${pkgdir}/etc/gconf/schemas/*.schemas
+
+}
+
+md5sums=('1b9432a5ac81a7b6d09b68887994f5c5')
