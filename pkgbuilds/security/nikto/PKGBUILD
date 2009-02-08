@@ -1,0 +1,31 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+#Contributor v2punkt0 <v2punkt0@gmail.com>
+pkgname=nikto
+pkgver=2.03
+pkgrel=2
+pkgdesc='Nikto is a web server scanner which performs comprehensive tests against web servers for multiple items'
+url='http://www.cirt.net/code/nikto.shtml'
+license='GPL'
+arch=('i686' 'x86_64')
+depends=('perl' 'openssl' 'perl-net-ssleay')
+source=(http://www.cirt.net/nikto/$pkgname-$pkgver.tar.bz2)
+md5sums=('8f286a7943b12a341088f005f832d087')
+
+build() {
+	chmod 644 "${srcdir}"/nikto*/docs/nikto_manual.html
+	chmod 644 "${srcdir}"/nikto*/docs/LICENSE.txt
+	chmod 644 "${srcdir}"/nikto*/docs/CHANGES.txt
+	chmod 644 "${srcdir}"/nikto*/docs/nikto.dtd
+	mkdir -p "${pkgdir}"/opt/nikto
+	cp -ax "${srcdir}"/nikto*/* "${pkgdir}"/opt/nikto
+	mkdir -p "${pkgdir}"/usr
+	mkdir -p "${pkgdir}"/usr/bin
+	echo '#!/bin/bash' > "${pkgdir}"/usr/bin/nikto
+	echo 'DIR=`pwd`' >> "${pkgdir}"/usr/bin/nikto
+	echo 'cd /opt/nikto' >> "${pkgdir}"/usr/bin/nikto
+	echo './nikto.pl $@' >> "${pkgdir}"/usr/bin/nikto
+	echo 'cd "$DIR"' >> "${pkgdir}"/usr/bin/nikto 
+	chmod 755 "${pkgdir}"/usr/bin/nikto
+	echo "Don't forget to update the database first with:"
+	echo "nikto -update"
+}
