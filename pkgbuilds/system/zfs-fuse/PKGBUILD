@@ -1,0 +1,21 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+# Contributor: Mark Nikkel <mnikkel@gmail.com>
+# Contributor: Michael Stephens <michaeljs@gmail.com>
+pkgname=zfs-fuse
+pkgver=0.5.0
+pkgrel=1
+pkgdesc="A port of the ZFS filesytem to the FUSE framework."
+arch=(i686)
+url="http://www.wizy.org/wiki/ZFS_on_FUSE"
+license=('CDDL')
+depends=('fuse' 'zlib' 'libaio')
+makedepends=('scons')
+source=(http://download.berlios.de/zfs-fuse/$pkgname-$pkgver.tar.bz2) 
+md5sums=('46d6bd429d6d9ddd57e078f5f22fa1cd')
+
+build() {
+    cd "${srcdir}"/$pkgname-$pkgver
+    cd src
+    scons || return 1
+    scons install install_dir="${pkgdir}"/usr/sbin
+}

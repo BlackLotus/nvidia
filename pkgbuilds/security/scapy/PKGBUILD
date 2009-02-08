@@ -1,0 +1,23 @@
+# Contributor: Patrick Baumgart <Baumi@gmx.com>
+
+pkgname=scapy
+pkgver=2.0.0.10
+pkgrel=1
+pkgdesc="Scapy is a powerful interactive packet manipulation program"
+url="http://www.secdev.org/projects/scapy/"
+depends=('tcpdump' 'libpcap' 'pycrypto' 'gnuplot' 'python>=2.5' 'graphviz')
+arch=('i686')
+license=('GPLv2')
+
+source=(http://pierre.droids-corp.org/${pkgname}/ethertypes \
+	http://www.secdev.org/projects/scapy/files/scapy-$pkgver.zip )
+	
+md5sums=('94bffde8f75a1b8f891fb780bfe15ca2'
+         'a5b7be2e10c7d7e0a38bf09c803b60d5')
+
+build(){
+	unzip "${srcdir}"/$pkgname-$pkgver.zip
+	cd "${srcdir}"/$pkgname-$pkgver
+	./setup.py build
+	./setup.py install --prefix=$pkgdir/usr
+}
