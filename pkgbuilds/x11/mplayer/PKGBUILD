@@ -1,20 +1,20 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Bächler <thomas@archlinux.org>
 pkgname=mplayer
-pkgver=28388
+pkgver=28484
 pkgrel=1
 pkgdesc="A movie player for linux"
 arch=(i686 x86_64)
 depends=('libxxf86dga' 'libxv' 'libmad' 'giflib' 'cdparanoia'
          'sdl' 'lame' 'libtheora' 'xvidcore' 'zlib'
-         'libgl' 'smbclient' 'aalib'
-         'x264>=20080625' 'faac' 'lirc-utils' 'ttf-dejavu' 'fribidi')
+         'libgl' 'smbclient' 'libcaca'
+         'x264>=20080625' 'faac' 'ttf-dejavu' 'fribidi')
 license=('GPL')
 url="http://www.mplayerhq.hu/"
-makedepends=('libcaca' 'unzip' 'live-media' 'libdca' 'mesa')
+makedepends=('unzip' 'live-media' 'libdca' 'mesa')
 backup=('etc/mplayer/codecs.conf' 'etc/mplayer/input.conf')
 source=()
-md5sums=('e4e2020d11b681aac898103b3ba723c4')
+md5sums=()
 _svntrunk=svn://svn.mplayerhq.hu/mplayer/trunk
 _svnmod=mplayer
 build() {
@@ -37,7 +37,8 @@ build() {
       --enable-fribidi --disable-libdv --disable-musepack \
       --language=en --disable-dvdnav --disable-esd --disable-mga \
       --disable-libamr_nb --disable-jack --disable-pulse \
-      --with-extraincdir=/usr/lib/live-media
+      --with-extraincdir=/usr/lib/live-media --disable-aa \
+      --disable-lirc --disable-lircc --enable-caca
   [ "$CARCH" = "i686" ] &&  sed 's|-march=i486|-march=i686|g' -i config.mak
   make || return 1
   make -j1 DESTDIR=${pkgdir} install
