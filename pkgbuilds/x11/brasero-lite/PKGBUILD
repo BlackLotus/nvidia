@@ -3,12 +3,12 @@
 pkgname=brasero-lite
 origname=brasero
 pkgver=0.9.1
-pkgrel=1
+pkgrel=2
 pkgdesc="A disc burning application, without  totem-plparser and nautilus dependency. Suitable for non-Gnome environment."
 arch=('i686' 'x86_64')
 url="http://www.gnome.org/projects/brasero"
 license=('GPL')
-depends=('gconf' 'gstreamer0.10-base' 'dvd+rw-tools' 'cdrdao' 'cdrkit')
+depends=('gconf' 'gstreamer0.10-base' 'dvd+rw-tools' 'cdrdao' 'cdrkit' 'hal')
 optdepends=('libburn: alternative back-end'
             'libisofs: libburn back-end'
             'dvdauthor: video project'
@@ -22,7 +22,7 @@ conflicts=('brasero' 'brasero-svn')
 
 build() {
   cd ${srcdir}/brasero-${pkgver}
-  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --disable-caches --disable-schemas-install --disable-search
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --disable-caches --disable-schemas-install --disable-search --disable-playlist
   make || return 1
   make GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL=1 DESTDIR=${pkgdir} install || return 1
   mkdir -p ${pkgdir}/usr/share/gconf/schemas
