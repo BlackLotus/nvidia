@@ -5,7 +5,7 @@
 
 pkgname=john
 pkgver=1.7.3.1
-pkgrel=3
+pkgrel=4
 pkgdesc="John the Ripper is a fast password cracker. Additional patches (NTLM, MySQL, Kerberos V5, etc.) included."
 arch=(i686 x86_64)
 url="http://www.openwall.com/$pkgname/"
@@ -51,9 +51,9 @@ build() {
 #!/bin/bash
 if grep -q sse2 /proc/cpuinfo
 then
-	john-sse2 $@
+	john-sse2 \$@
 else
-	john-mmx $@
+	john-mmx \$@
 fi
 EOF
 	chmod 755 john
