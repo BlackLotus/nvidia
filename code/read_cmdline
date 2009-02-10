@@ -1,0 +1,13 @@
+#!/bin/bash
+for x in $(cat /proc/cmdline)
+        do
+        case ${x} in
+                xfce) /etc/init.d/gdm start
+                ;;
+		xkeymap=*) export ${x}
+		;;
+		keymap=*) export ${x} && loadkeys $keymap
+		;;
+        esac
+done
+
