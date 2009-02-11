@@ -26,6 +26,7 @@ CHROOTED
 	cp -R /pub/livecd/source/boot/{initramfs,memtest,System.map26,vmlinuz26,isolinux} /pub/livecd/target/boot/
 	time mkisofs -b boot/isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot/isolinux/boot.cat -o /pub/livecd/chaoxcd-$_DATE.iso -x files /pub/livecd/target/
 	cd /pub/livecd/
+	isohybrid chaoxcd-$_DATE.iso
 	shasum chaoxcd-$_DATE.iso > chaoxcd-$_DATE.iso.digest
 }
 makeliveusb() {
