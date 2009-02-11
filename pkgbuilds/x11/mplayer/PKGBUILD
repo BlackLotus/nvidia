@@ -1,13 +1,13 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Bächler <thomas@archlinux.org>
 pkgname=mplayer
-pkgver=28484
+pkgver=28529
 pkgrel=1
 pkgdesc="A movie player for linux"
 arch=(i686 x86_64)
 depends=('libxxf86dga' 'libxv' 'libmad' 'giflib' 'cdparanoia'
          'sdl' 'lame' 'libtheora' 'xvidcore' 'zlib'
-         'libgl' 'smbclient' 'libcaca'
+         'libgl' 'smbclient' 'libcaca' 'alsa-lib'
          'x264>=20080625' 'faac' 'ttf-dejavu' 'fribidi')
 license=('GPL')
 url="http://www.mplayerhq.hu/"
@@ -38,7 +38,8 @@ build() {
       --language=en --disable-dvdnav --disable-esd --disable-mga \
       --disable-libamr_nb --disable-jack --disable-pulse \
       --with-extraincdir=/usr/lib/live-media --disable-aa \
-      --disable-lirc --disable-lircc --enable-caca
+      --disable-lirc --disable-lircc --enable-caca --enable-alsa \
+      --disable-ossaudio
   [ "$CARCH" = "i686" ] &&  sed 's|-march=i486|-march=i686|g' -i config.mak
   make || return 1
   make -j1 DESTDIR=${pkgdir} install
