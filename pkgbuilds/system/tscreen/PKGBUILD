@@ -1,0 +1,18 @@
+# Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
+pkgname=tscreen
+pkgver=0.4.9
+pkgrel=1
+pkgdesc="a screen fork with vertical split support and other new features"
+arch=("i686")
+url="http://www.steve.org.uk/Software/tscreen/"
+license=('GPL')
+depends=("ncurses" "libelf")
+source=(http://www.steve.org.uk/Software/$pkgname/dist/$pkgname-$pkgver.tar.gz)
+md5sums=('12303c84a93a78f1c44441323ba38845')
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+  ./configure --prefix=/usr
+  make || return 1
+  make DESTDIR="$pkgdir/" install
+}
+# vim:set ts=2 sw=2 et:
