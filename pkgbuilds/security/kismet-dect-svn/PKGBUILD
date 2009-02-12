@@ -2,8 +2,8 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 
 pkgname=kismet-dect-svn
-pkgver=62
-pkgrel=3
+pkgver=68
+pkgrel=1
 pkgdesc="DECT Plugin for Kismet"
 arch=('i686' 'x86_64')
 url="https://dedected.org/"

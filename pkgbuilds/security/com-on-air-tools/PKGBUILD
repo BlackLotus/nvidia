@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Schneider <blacklotus@jenux.homelinux.org>
 pkgname=com-on-air-tools
-pkgver=58
+pkgver=70
 pkgrel=1
 pkgdesc="Com on air linux driver and userspace tools. Dect pcmcia card."
 url="https://dedected.org/cgi-bin/trac.cgi/wiki/COM-ON-AIR-Linux"
