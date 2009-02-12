@@ -27,10 +27,10 @@ CHROOTED
 	umount-chroot
 	rm -rf "${TARGET}"/boot/*
 	cp -R "${SOURCE}"/boot/{initramfs,memtest,System.map26,vmlinuz26,isolinux} "${TARGET}"/boot/
-	time mkisofs -b boot/isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot/isolinux/boot.cat -o "${LIVECD}"/chaoxcd-$_DATE.iso -x files "${TARGET}"/
+	time mkisofs -b boot/isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 -c boot/isolinux/boot.cat -o "${LIVECD}"/chaox-$_DATE.iso -x files "${TARGET}"/
 	cd "${LIVECD}"
-	isohybrid chaoxcd-$_DATE.iso
-	shasum chaox-$_DATE.iso > chaoxcd-$_DATE.iso.digest
+	isohybrid chaox-$_DATE.iso
+	shasum chaox-$_DATE.iso > chaox-$_DATE.iso.digest
 }
 mount-chroot() {
 	cd /pub/livecd
