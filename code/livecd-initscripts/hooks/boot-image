@@ -9,7 +9,7 @@ run_hook ()
     /bin/mkdir -p /bootmnt
     bootmnt="/bootmnt"
     found=0
-    for image in {/dev/sd[a-z][0-9],/dev/cd/*}; do
+    for image in /dev/sd[a-z][0-9] /dev/cd/*; do
         if  mount -t iso9660 -r "${image}" ${bootmnt} >/dev/null 2>&1; then
             if [ -e "${bootmnt}/archlive.sqfs" ]; then
                 found=1
