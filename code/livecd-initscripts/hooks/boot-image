@@ -17,7 +17,7 @@ run_hook ()
                 break
             fi
         else
-            echo "Failed to mount ${image}"
+            msg "Failed to mount ${image}"
         fi
         [ ${found} -eq 0 ] && umount ${bootmnt} >/dev/null 2>&1
     done
