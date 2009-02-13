@@ -1,0 +1,45 @@
+run_hook ()
+{
+    msg ":: Waiting for usb devices to settle..."
+    /sbin/udevadm trigger --subsystem-match=usb
+    /sbin/udevadm settle
+    sleep 5
+    msg ":: Scanning for boot usb device..."
+
+    /bin/mkdir -p /bootmnt
+    bootmnt="/bootmnt"
+    found=0
+    for image in /dev/sd[a-z][0-9] /dev/cd/*; do
+        if  mount -t iso9660 -r "${image}" ${bootmnt} >/dev/null 2>&1; then
+            if [ -e "${bootmnt}/archlive.sqfs" ]; then
+                found=1
+                msg "${image}"
+                break
+            fi
+        else
+            echo "Failed to mount ${image}"
+        fi
+        [ ${found} -eq 0 ] && umount ${bootmnt} >/dev/null 2>&1
+    done
+
+    if [ ${found} -eq 0 ]; then
+        echo "ERROR: cannot find booted usb device, exiting to shell"
+        /bin/sh
+    else
+        export BOOT_MOUNT="${bootmnt}"
+    fi
+    # check if there is a partition available for writing
+    testpersistable=$(echo $image|sed -e 's/1/2/')
+    if [ -b $testpersistable ]
+    then
+        modprobe ext2
+        mkdir /test
+        if mount -t ext2 $testpersistable /test
+        then
+            umount /test
+            export persistable=$testpersistable
+        fi
+    fi
+}
+
+# vim:ft=sh:ts=4:sw=4:et:

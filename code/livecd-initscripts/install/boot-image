@@ -1,0 +1,19 @@
+install ()
+{
+    MODULES="$(all_modules /kernel/fs/aufs) ext2"
+
+    # need usb modules for external drives
+    MODULES="${MODULES} $(checked_modules "/usb/host" | grep -ve "_cs" -e "sl1811-hcd" -e "isp116x-hcd")"
+    MODULES=$(echo ${MODULES}) #trim whitespace
+    if [ "x${MODULES}" != "x" ]; then
+        MODULES="${MODULES}"
+    fi
+    add_file /etc/udev/rules.d/81-arch.rules /lib/udev/rules.d/81-arch.rules
+    add_file /etc/udev/rules.d/75-cd-aliases-generator.rules.optional /lib/udev/rules.d/75-cd-aliases-generator.rules.optional
+    add_file /lib/udev/cdsymlinks.sh /lib/udev/cdsymlinks.sh
+    BINARIES="/lib/udev/cdrom_id sed"
+    FILES=""
+    SCRIPT="boot-image"
+}
+
+# vim:ft=sh:ts=4:sw=4:et:
