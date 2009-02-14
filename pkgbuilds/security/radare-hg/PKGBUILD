@@ -33,4 +33,7 @@ build() {
 	export FAKEROOTKEY=$_fakerootkey
 	msg "Installing..."
 	./waf --destdir="${pkgdir}" install || return 1
+
+	install -d "${pkgdir}/usr/share/man/man1/"
+	install -m644 man/* "${pkgdir}/usr/share/man/man1/" || return 1	
 }
