@@ -1,7 +1,7 @@
 # Contributor: Jens Pranaitis <jens@jenux.homelinux.org>
 # Contributor: Thomas Bächler <thomas@archlinux.org>
 pkgname=mplayer
-pkgver=28529
+pkgver=28583
 pkgrel=1
 pkgdesc="A movie player for linux"
 arch=(i686 x86_64)
