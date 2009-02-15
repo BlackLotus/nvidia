@@ -1,0 +1,88 @@
+#!/bin/bash
+#Chaox-ng nvidia installer version 0.3
+
+tmpfile='/tmp/.nvidia-setup'
+
+install_nvidia() {
+	echo "I try to install nvidia$1"
+	echo "Removing unneeded deps"
+	pacman -Rss libgl ati-dri intel-dri unichrome-dri xf86-video-mga xf86-video-savage xf86-video-tdfx xf86-video-trident xf86-video-ati xf86-video-intel xf86-video-openchrome xf86-video-radeonhd --nodeps --noconfirm > $tmpfile
+	echo "Start Driver-Installation"
+	pacman -S nvidia$1 --noconfirm
+}
+
+detect_nvidia() {
+#Work in progress
+	cardinfo=$(lspci |grep nvidia -i|grep vga -i|awk -F": " {'print $2'})
+	cardversion=$(lspci |grep nvidia -i|grep vga -i|awk -F"Ge.orce " {'print $2'}|cut -c1)
+	if [ "$cardinfo" = "" ];then
+	cardinfo="Card that is not in your PC ;)"
+	dialog --menu "You don't seem to have a nvidia card in your PC.Do you wanna install it anyway?" 0 0 0 "1" "Yes" "2" "No" 2> $tmpfile
+	case $(cat $tmpfile) in
+		"1") dialog --msgbox "Have Phun" 0 0 ;;
+		"2") dialog --msgbox "Cya" 0 0 && exit 0;;
+		 *)  exit 0;;
+		esac
+	fi
+	if [ $cardversion -ge 6 ];then
+	defaultversion=4
+	elif [ $cardversion -gt 3 ];then
+	defaultversion=3
+	elif [ $cardversion = 3 ];then
+	defaultversion=2
+	else
+	defaultversion=1
+	fi
+#	dialog --msgbox "Your card version is $cardversion" 0 0
+	clear
+}
+
+create_xorg-file(){
+	dialog --msgbox 'Create backup of /etc/X11/xorg.conf at /etc/X11/xorg.conf.backup' 0 0
+	sudo mv /etc/X11/xorg.conf /etc/X11/xorg.conf.backup
+	sudo cat > /etc/X11/xorg.conf.new << "EOF"
+Section "Device"
+	Identifier	"Device0"
+	Driver		"nvidia"
+	VendorName	"NVIDIA Corporation"
+EndSection
+EOF
+clear
+}
+
+show_eula(){
+	dialog --msgbox "$(cat EULA)" 0 0
+	dialog --menu "Do you accept the EULA?" 0 0 0 "1" "Yes" "2" "No" 2> $tmpfile
+	case $(cat $tmpfile) in
+		"1") dialog --msgbox "Have Phun" 0 0 ;;
+		"2") dialog --msgbox "Cya" 0 0 && exit 0 ;;
+		*) exit 1 ;;
+	esac
+clear
+}
+
+
+#begin of the installer
+show_eula
+detect_nvidia
+dialog --msgbox "Welcome to the chaox-ng nvidia installer. This program will guide you through the installation of the proprietary nvidia drivers. nVidia provides several versions of it's driver, for different chipset modules. The 71xx series supports the nvidia chipsets up to and including Geforce 2. The 96xx series supports chipsets from Geforce 2 to and including Geforce 4 and the 173xx series supports chipsets from Geforce 4 to Geforce 5. For current chipsets choose the normal nvidia series" 0 0
+clear
+dialog --default-item $defaultversion --menu "Choose your driver series\nYour card is a\n$cardinfo\nDon't know which driver you need but maybe you know.\nIf you don't know maybe you wanna use the automagical chosen Version (Attention: Experimental!!!)" 0 0 0 1 "96xx series" 2 "173xx series" 3 "current series" 2> $tmpfile
+clear
+series=$(cat $tmpfile)
+rm $tmpfile
+case "$series" in
+	1 ) echo "installing series 96xx drivers" && install_nvidia -96xx && create_xorg-file;;
+	2 ) echo "installing series 173xx drivers" && install_nvidia -173xx && create_xorg-file;;
+	3 ) echo "installing current series drivers" && install_nvidia && create_xorg-file;;
+	* ) dialog --yesno "Abort Installation?" 6 40 && exit 0
+            ;;
+esac
+sudo modprobe nvidia
+#sudo nvidia-xconfig -s 2> /tmp/nvidia-xconfig.err
+dialog --menu "Congratulations, you have succesfully installed the nvidia drivers, however, for the changes to take effect you have to restart X. You can do this later by pressing ctrl+alt+backspace or choose now \"Restart X\" (All your windows will be closed.Be sure you don't loose any data)." 0 0 0 "1" "I will do it later manualy" "2" "Restart X" 2> $tmpfile
+case $(cat $tmpfile) in
+	"1") dialog --msgbox "Have Phun" 0 0 ;;
+	"2") sudo /etc/rc.d/gdm stop;sudo rmmod nvidia;sudo modprobe nvidia;sudo /etc/rc.d/gdm start ;;
+	*) exit 0 ;;
+esac
