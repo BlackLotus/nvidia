@@ -3,7 +3,7 @@
 pkgname=kernel26-chaox-sources
 _basekernel=2.6.28
 pkgver=2.6.28.5
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
 license=('GPL2')
@@ -74,6 +74,7 @@ build() {
   # build the full kernel version to use in pathnames
   . ./.config
   make prepare
+  make modules_prepare
   _kernver="$pkgver"${CONFIG_LOCALVERSION}""
   install -D -m644 Makefile \
     ${pkgdir}/usr/src/linux-${_kernver}/Makefile
@@ -150,9 +151,7 @@ build() {
     mkdir -p ${pkgdir}/usr/src/linux-${_kernver}/`echo $i | sed 's|/Kconfig.*||'`
     cp $i ${pkgdir}/usr/src/linux-${_kernver}/$i
   done
-
   cd ${pkgdir}/usr/src/linux-${_kernver}/include && ln -s asm-$KARCH asm
-
   chown -R root.root ${pkgdir}/usr/src/linux-${_kernver}
   find ${pkgdir}/usr/src/linux-${_kernver} -type d -exec chmod 755 {} \;
   # remove unneeded architectures
