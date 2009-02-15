@@ -17,9 +17,9 @@ detect_nvidia() {
 	cardversion=$(lspci |grep nvidia -i|grep vga -i|awk -F"Ge.orce " {'print $2'}|cut -c1)
 	if [ "$cardinfo" = "" ];then
 	cardinfo="Card that is not in your PC ;)"
-	dialog --menu "You don't seem to have a nvidia card in your PC.Do you wanna install it anyway?" 0 0 0 "1" "Yes" "2" "No" 2> $tmpfile
+	dialog --menu "You don't seem to have a nvidia card in your PC. Do you want to install the drivers anyway?" 0 0 0 "1" "Yes" "2" "No" 2> $tmpfile
 	case $(cat $tmpfile) in
-		"1") dialog --msgbox "Have Phun" 0 0 ;;
+		"1") dialog --msgbox "Have Fun" 0 0 ;;
 		"2") dialog --msgbox "Cya" 0 0 && exit 0;;
 		 *)  exit 0;;
 		esac
@@ -51,7 +51,7 @@ clear
 }
 
 show_eula(){
-	dialog --msgbox "$(cat EULA)" 0 0
+	dialog --msgbox "$(cat /usr/share/installnvidia/EULA)" 0 0
 	dialog --menu "Do you accept the EULA?" 0 0 0 "1" "Yes" "2" "No" 2> $tmpfile
 	case $(cat $tmpfile) in
 		"1") dialog --msgbox "Have Phun" 0 0 ;;
@@ -67,7 +67,7 @@ show_eula
 detect_nvidia
 dialog --msgbox "Welcome to the chaox-ng nvidia installer. This program will guide you through the installation of the proprietary nvidia drivers. nVidia provides several versions of it's driver, for different chipset modules. The 71xx series supports the nvidia chipsets up to and including Geforce 2. The 96xx series supports chipsets from Geforce 2 to and including Geforce 4 and the 173xx series supports chipsets from Geforce 4 to Geforce 5. For current chipsets choose the normal nvidia series" 0 0
 clear
-dialog --default-item $defaultversion --menu "Choose your driver series\nYour card is a\n$cardinfo\nDon't know which driver you need but maybe you know.\nIf you don't know maybe you wanna use the automagical chosen Version (Attention: Experimental!!!)" 0 0 0 1 "96xx series" 2 "173xx series" 3 "current series" 2> $tmpfile
+dialog --default-item $defaultversion --menu "Choose your driver series\nYour card is a\n$cardinfo\nDon't know which driver you need but maybe you know.\nIf you don't know maybe you want to use the automagically detected version (Attention: Experimental!!!)" 0 0 0 1 "96xx series" 2 "173xx series" 3 "current series" 2> $tmpfile
 clear
 series=$(cat $tmpfile)
 rm $tmpfile
@@ -80,7 +80,7 @@ case "$series" in
 esac
 sudo modprobe nvidia
 #sudo nvidia-xconfig -s 2> /tmp/nvidia-xconfig.err
-dialog --menu "Congratulations, you have succesfully installed the nvidia drivers, however, for the changes to take effect you have to restart X. You can do this later by pressing ctrl+alt+backspace or choose now \"Restart X\" (All your windows will be closed.Be sure you don't loose any data)." 0 0 0 "1" "I will do it later manualy" "2" "Restart X" 2> $tmpfile
+dialog --menu "Congratulations, you have succesfully installed the nvidia drivers, however, for the changes to take effect you have to restart X. You can do this later by pressing ctrl+alt+backspace or choose \"Restart X\" (All your windows will be closed. Be sure you don't loose any data)." 0 0 0 "1" "I will do it later manualy" "2" "Restart X" 2> $tmpfile
 case $(cat $tmpfile) in
 	"1") dialog --msgbox "Have Phun" 0 0 ;;
 	"2") sudo /etc/rc.d/gdm stop;sudo rmmod nvidia;sudo modprobe nvidia;sudo /etc/rc.d/gdm start ;;
