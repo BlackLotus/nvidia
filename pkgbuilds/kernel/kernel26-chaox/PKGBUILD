@@ -3,7 +3,7 @@
 pkgname=kernel26-chaox
 _basekernel=2.6.28
 pkgver=2.6.28.5
-pkgrel=1
+pkgrel=2
 pkgdesc="Linux kernel based on slax config. Used in chaox-ng"
 arch=("i686")
 license=('GPL2')
@@ -83,6 +83,8 @@ build() {
   make INSTALL_MOD_PATH="${pkgdir}" modules_install || return 1
   cp System.map "${pkgdir}"/boot/System.map26
   cp arch/$KARCH/boot/bzImage "${pkgdir}"/boot/vmlinuz26
+  cd ${pkgdir}/lib/modules/${_kernver}
+  rm -f source build; ln -sf ../../../usr/src/linux-${_kernver} build
   # set correct depmod command for install
   sed -i -e "s/KERNEL_VERSION=.*/KERNEL_VERSION=${_kernver}/g" "${startdir}"/$pkgname.install
   mkdir -p "${pkgdir}"/etc/mkinitcpio.d/
