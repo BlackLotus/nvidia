@@ -14,7 +14,7 @@ install_nvidia() {
 detect_nvidia() {
 #Work in progress
 	cardinfo=$(lspci |grep nvidia -i|grep vga -i|awk -F": " {'print $2'})
-	cardversion=$(lspci |grep nvidia -i|grep vga -i|awk -F"Geforce " {'print $2'}|cut -c1)
+	cardversion=$(lspci |grep nvidia -i|grep vga -i|awk -F"Ge.orce " {'print $2'}|cut -c1)
 	if [ "$cardinfo" = "" ];then
 	cardinfo="Card that is not in your PC ;)"
 	dialog --menu "You don't seem to have a nvidia card in your PC.Do you wanna install it anyway?" 0 0 0 "1" "Yes" "2" "No" 2> $tmpfile
